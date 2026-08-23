@@ -201,14 +201,18 @@
 
   <script>
     // --- MULTI-PEER REAL-TIME GLOBAL MESH (P2P + WEBSOCKET RELAYS + LOCALSTORAGE) ---
-    const LOCAL_CACHE_KEY = "pronnect_fresh_clean_2026_v5";
-    const MESH_CHANNEL_NAME = "pronnect_mesh_clean_2026_v5";
-    const GUN_MESH_NAMESPACE = "pronnect_clean_slate_mesh_2026_v5";
+    const LOCAL_CACHE_KEY = "pronnect_clean_v2026_root";
+    const MESH_CHANNEL_NAME = "pronnect_channel_clean_2026";
+    const GUN_MESH_NAMESPACE = "pronnect_pristine_clean_mesh_2026_final";
 
-    // Clean legacy cached storage keys from previous sessions
-    try {
-      ["pronnect_state_v3", "pronnect_session_v4", "pronnect_fresh_start_2026_clean_v1", "pronnect_user"].forEach(k => localStorage.removeItem(k));
-    } catch(e) {}
+    // Auto-purge any stale or old mock cache keys on initialization
+    if (!localStorage.getItem('pronnect_pristine_init_2026')) {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        localStorage.setItem('pronnect_pristine_init_2026', 'true');
+      } catch(e) {}
+    }
 
     let store = {
       users: [],
