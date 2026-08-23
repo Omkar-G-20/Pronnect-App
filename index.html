@@ -505,122 +505,103 @@
       }
     }
 
-    // --- AUTHENTICATION MODAL: 1-CLICK GOOGLE & EMAIL/OTP AUTH ---
-    function showAuthModal(tab = 'signup') {
+    // --- AUTHENTICATION MODAL: GOOGLE ONE-TAP, GITHUB, SSO & EMAIL AUTH ---
+    function showAuthModal(tab = 'login') {
       const isSignup = tab === 'signup';
       const registeredUsers = store.users || [];
+      const primaryUser = registeredUsers.find(u => u.email === 'omkargurav3217@gmail.com') || registeredUsers[0] || {
+        name: 'Omkar',
+        email: 'omkargurav3217@gmail.com',
+        picture: 'https://api.dicebear.com/7.x/bottts/svg?seed=Omkar%20Gurav'
+      };
 
-      openModal(isSignup ? "✨ Create Your Profile" : "🔑 Log In to Workspace", `
-        <div style="display:flex; flex-direction:column; gap:14px;">
+      openModal(isSignup ? "Create your account" : "Log in to your account", `
+        <div style="display:flex; flex-direction:column; gap:12px;">
           
-          <!-- 1-Click Fast Google Sign-in Option -->
-          <button type="button" onclick="triggerGoogleSignIn()" class="btn" style="background:#ffffff; color:#1f2937; font-weight:600; width:100%; box-shadow:0 4px 12px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 16px; border:1px solid #e5e7eb;">
-            <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-            <span>⚡ Continue with Google (Instant Login)</span>
-          </button>
-
-          <div style="display:flex; align-items:center; gap:8px; margin:2px 0;">
-            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
-            <span class="text-muted text-xs">OR USE EMAIL & PASSWORD</span>
-            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+          <!-- 1. Google One-Tap Card -->
+          <div onclick="triggerGoogleSignIn('${primaryUser.email}', '${primaryUser.name}')" style="background:#e8f0fe; border:1px solid #d2e3fc; border-radius:8px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#dce8fc'" onmouseout="this.style.background='#e8f0fe'">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <img src="${primaryUser.picture || 'https://api.dicebear.com/7.x/bottts/svg?seed=Omkar'}" style="width:32px; height:32px; border-radius:50%; background:#7d4047; padding:2px; object-fit:cover;" />
+              <div style="text-align:left;">
+                <div style="font-weight:700; font-size:0.85rem; color:#1a73e8; display:flex; align-items:center; gap:4px;">
+                  <span>Continue as ${escapeHtml(primaryUser.name.split(' ')[0])}</span>
+                  <span style="font-size:10px;">▾</span>
+                </div>
+                <div style="font-size:0.75rem; color:#5f6368;">${escapeHtml(primaryUser.email)}</div>
+              </div>
+            </div>
+            <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
           </div>
 
-          <!-- Tab Switcher -->
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:var(--c-charcoal-dark); padding:4px; border-radius:10px; border:1px solid rgba(221,213,205,0.2);">
-            <button type="button" onclick="showAuthModal('signup')" class="btn btn-sm ${isSignup ? 'btn-primary' : 'btn-secondary'}" style="border:none; border-radius:8px; font-weight:600;">
-              ✨ 1. Create Account
-            </button>
-            <button type="button" onclick="showAuthModal('login')" class="btn btn-sm ${!isSignup ? 'btn-primary' : 'btn-secondary'}" style="border:none; border-radius:8px; font-weight:600;">
-              🔑 2. Log In
-            </button>
+          <!-- 2. Continue with GitHub Button -->
+          <button type="button" onclick="triggerGithubSignIn()" class="btn" style="background:#24292e; color:#ffffff; border:1px solid rgba(221,213,205,0.2); width:100%; font-weight:600; padding:10px 14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+            <span>Continue with GitHub</span>
+          </button>
+
+          <!-- 3. Continue with SSO Button -->
+          <button type="button" onclick="triggerGoogleSignIn()" class="btn btn-secondary" style="width:100%; border:1px solid rgba(221,213,205,0.25); background:var(--c-charcoal-dark); color:var(--c-cream); font-weight:600; padding:10px 14px; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:8px;">
+            <span>🔒 Continue with SSO</span>
+          </button>
+
+          <!-- Divider: or -->
+          <div style="display:flex; align-items:center; gap:12px; margin:4px 0;">
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+            <span class="text-muted text-xs" style="color:var(--c-sand); font-size:12px;">or</span>
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
           </div>
 
           ${isSignup ? `
-            <!-- 1. CREATE ACCOUNT FORM (FIRST OPTION) -->
+            <!-- CREATE ACCOUNT FORM -->
             <form onsubmit="initiateSignupOTP(event)" style="display:flex; flex-direction:column; gap:12px;">
               <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Full Name *</label>
-                <input id="auth-reg-name" required placeholder="e.g. Omkar Gurav" autofocus />
+                <input id="auth-reg-name" required placeholder="Full Name *" autofocus style="background:var(--c-charcoal-dark);" />
               </div>
               <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Email Address * (OTP will be sent here)</label>
-                <input id="auth-reg-email" type="email" required placeholder="e.g. omkar@example.com" />
+                <input id="auth-reg-email" type="email" required placeholder="Email address *" style="background:var(--c-charcoal-dark);" />
               </div>
               <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">School / College / Organization *</label>
-                <input id="auth-reg-school" required placeholder="e.g. Dayananda Sagar College of Engineering" />
+                <input id="auth-reg-school" required placeholder="School / College *" style="background:var(--c-charcoal-dark);" />
               </div>
-              <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Create Login Password *</label>
-                <div class="input-with-btn">
-                  <input id="auth-reg-password" type="password" required placeholder="Enter secure password (min 4 chars)" />
-                  <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-password', this)">👁️</button>
-                </div>
+              <div class="input-with-btn">
+                <input id="auth-reg-password" type="password" required placeholder="Password *" style="background:var(--c-charcoal-dark);" />
+                <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-password', this)">👁️</button>
               </div>
-              <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Confirm Password *</label>
-                <div class="input-with-btn">
-                  <input id="auth-reg-confirm-password" type="password" required placeholder="Re-enter password" />
-                  <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-confirm-password', this)">👁️</button>
-                </div>
+              <div class="input-with-btn">
+                <input id="auth-reg-confirm-password" type="password" required placeholder="Confirm Password *" style="background:var(--c-charcoal-dark);" />
+                <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-confirm-password', this)">👁️</button>
               </div>
-              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
-                <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
-                <button type="submit" class="btn btn-primary" style="flex:1;">📩 Send OTP & Verify &rarr;</button>
-              </div>
-              <div style="text-align:center; margin-top:4px;">
+              <button type="submit" class="btn" style="background:#5b8def; color:white; font-weight:700; padding:12px; margin-top:4px; border-radius:8px;">
+                Continue
+              </button>
+              <div style="text-align:center; margin-top:6px;">
                 <span class="text-xs text-muted">Already have an account? </span>
-                <a href="javascript:void(0)" onclick="showAuthModal('login')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Log In here &rarr;</a>
+                <a href="javascript:void(0)" onclick="showAuthModal('login')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Log in</a>
               </div>
             </form>
           ` : `
-            <!-- 2. LOG IN FORM (SECOND OPTION) -->
-            <div style="display:flex; flex-direction:column; gap:14px;">
-              ${registeredUsers.length > 0 ? `
-                <div>
-                  <label class="text-xs text-muted" style="display:block; margin-bottom:6px;">Select an Existing Profile:</label>
-                  <div style="display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto; padding-right:4px;">
-                    ${registeredUsers.map(u => `
-                      <div onclick="prefillLogin('${escapeHtml(u.email || u.name)}')" style="display:flex; align-items:center; justify-content:space-between; background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); padding:8px 12px; border-radius:8px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--c-burgundy)'" onmouseout="this.style.borderColor='rgba(221,213,205,0.2)'">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                          <div style="width:26px; height:26px; border-radius:50%; background:var(--c-burgundy); color:var(--c-cream); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:11px;">
-                            ${(u.name || 'U').slice(0, 1).toUpperCase()}
-                          </div>
-                          <div>
-                            <div style="font-weight:600; font-size:0.85rem; color:var(--c-cream);">${escapeHtml(u.name)}</div>
-                            <div class="text-muted text-xs" style="font-size:10px;">${escapeHtml(u.school || u.email || 'Member')}</div>
-                          </div>
-                        </div>
-                        <span class="text-xs" style="color:var(--c-sand); font-size:11px;">Select &rarr;</span>
-                      </div>
-                    `).join('')}
-                  </div>
+            <!-- LOG IN FORM -->
+            <form onsubmit="initiateLoginOTP(event)" style="display:flex; flex-direction:column; gap:12px;">
+              <div>
+                <input id="auth-login-email" required placeholder="Email address or username" autofocus style="background:var(--c-charcoal-dark);" />
+              </div>
+              <div>
+                <div class="input-with-btn">
+                  <input id="auth-login-password" type="password" required placeholder="Password" style="background:var(--c-charcoal-dark);" />
+                  <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-login-password', this)">👁️</button>
                 </div>
-                <div style="text-align:center; font-size:0.75rem; color:var(--c-sand); opacity:0.6;">— ENTER CREDENTIALS —</div>
-              ` : ''}
-
-              <form onsubmit="initiateLoginOTP(event)" style="display:flex; flex-direction:column; gap:12px;">
-                <div>
-                  <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Email Address / Username *</label>
-                  <input id="auth-login-email" required placeholder="Enter your registered email" autofocus />
-                </div>
-                <div>
-                  <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Login Password *</label>
-                  <div class="input-with-btn">
-                    <input id="auth-login-password" type="password" required placeholder="Enter your password" />
-                    <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-login-password', this)">👁️</button>
-                  </div>
-                </div>
-                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
-                  <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
-                  <button type="submit" class="btn btn-primary" style="flex:1;">📩 Send OTP & Log In &rarr;</button>
-                </div>
-                <div style="text-align:center; margin-top:4px;">
-                  <span class="text-xs text-muted">Don't have an account yet? </span>
-                  <a href="javascript:void(0)" onclick="showAuthModal('signup')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Create Account first &rarr;</a>
-                </div>
-              </form>
-            </div>
+              </div>
+              <div style="text-align:left; margin-top:-4px;">
+                <a href="javascript:void(0)" onclick="showToast('Password recovery OTP will be sent to your email.')" style="color:#5b8def; font-size:0.75rem; text-decoration:none;">Forgot your password?</a>
+              </div>
+              <button type="submit" class="btn" style="background:#5b8def; color:white; font-weight:700; padding:12px; margin-top:4px; border-radius:8px;">
+                Continue
+              </button>
+              <div style="text-align:center; margin-top:6px;">
+                <span class="text-xs text-muted">Don't have an account? </span>
+                <a href="javascript:void(0)" onclick="showAuthModal('signup')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Sign up</a>
+              </div>
+            </form>
           `}
         </div>
       `);
@@ -740,8 +721,21 @@
       navigate('explore');
     }
 
+    // --- OTP EMAIL DISPATCH HELPER ---
+    async function dispatchOTPEmail(email, code, type, name) {
+      try {
+        await fetch('/api/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code, type, name })
+        });
+      } catch (e) {
+        console.error('OTP email dispatch failed:', e);
+      }
+    }
+
     // --- STEP 1: INITIATE SIGNUP OTP ---
-    function initiateSignupOTP(e) {
+    async function initiateSignupOTP(e) {
       e.preventDefault();
       const name = document.getElementById('auth-reg-name').value.trim();
       const email = document.getElementById('auth-reg-email').value.trim().toLowerCase();
@@ -778,11 +772,13 @@
         expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
       };
 
+      await dispatchOTPEmail(email, otpCode, 'signup', name);
       showOtpVerificationModal();
+      showToast("Verification code sent to your email inbox. Please check your mail.");
     }
 
     // --- STEP 2: INITIATE LOGIN OTP ---
-    function initiateLoginOTP(e) {
+    async function initiateLoginOTP(e) {
       e.preventDefault();
       const email = document.getElementById('auth-login-email').value.trim().toLowerCase();
       const password = document.getElementById('auth-login-password').value;
@@ -821,55 +817,36 @@
         expiresAt: Date.now() + 5 * 60 * 1000
       };
 
+      await dispatchOTPEmail(email, otpCode, 'login', pendingAuth.data.name);
       showOtpVerificationModal();
+      showToast("Verification code sent to your email inbox. Please check your mail.");
     }
 
-    // --- STEP 3: 6-DIGIT OTP VERIFICATION SCREEN WITH GMAIL TRIGGER ---
+    // --- STEP 3: 6-DIGIT OTP VERIFICATION SCREEN ---
     function showOtpVerificationModal() {
       if (!pendingAuth) return;
 
       const email = pendingAuth.data.email;
-      const otpCode = pendingAuth.otp;
 
-      openModal("🛡️ Gmail OTP Verification", `
+      openModal("🛡️ Verify Your Email", `
         <div style="display:flex; flex-direction:column; gap:16px; text-align:center;">
           
           <div style="width:52px; height:52px; border-radius:50%; background:rgba(125,64,71,0.25); border:1px solid var(--c-burgundy); margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">
-            🔐
+            📬
           </div>
 
           <div>
-            <div style="font-weight:700; font-size:1.1rem; color:var(--c-cream);">Verify Your Identity</div>
-            <p class="text-muted text-xs" style="margin-top:4px;">
-              A 6-digit security code was dispatched to your email:
-              <br><strong style="color:var(--c-cream); font-size:0.9rem;">${escapeHtml(email)}</strong>
+            <div style="font-weight:700; font-size:1.15rem; color:var(--c-cream);">Enter Security Code</div>
+            <p class="text-muted text-xs" style="margin-top:6px; line-height:1.5;">
+              A 6-digit verification code has been sent to:
+              <br><strong style="color:var(--c-cream); font-size:0.95rem;">${escapeHtml(email)}</strong>
             </p>
-          </div>
-
-          <!-- Direct Gmail Inbox Action -->
-          <div style="display:flex; justify-content:center; gap:8px;">
-            <a href="https://mail.google.com/mail/u/0/#search/Pronnect" target="_blank" class="btn btn-secondary btn-sm" style="background:rgba(234,67,53,0.15); border-color:rgba(234,67,53,0.4); color:var(--c-cream);">
-              <svg width="13" height="13" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 12.713l-11.985-8.713h23.97l-11.985 8.713zm0 2.574l-12-8.724v13.437h24v-13.437l-12 8.724z"/></svg>
-              <span>Open Gmail Inbox &rarr;</span>
-            </a>
-          </div>
-
-          <!-- Live Security Notification Banner -->
-          <div style="background:var(--c-charcoal-dark); border:1px dashed var(--c-burgundy); padding:12px; border-radius:10px; display:flex; flex-direction:column; gap:6px;">
-            <div style="font-size:0.75rem; color:var(--c-sand); display:flex; justify-content:space-between; align-items:center;">
-              <span>📩 Live OTP Code:</span>
-              <button type="button" onclick="document.getElementById('modal-otp-input').value = '${otpCode}'; showToast('OTP auto-filled!');" class="btn btn-secondary btn-sm" style="font-size:10px; padding:2px 8px;">Auto-Fill</button>
-            </div>
-            <div style="font-size:1.6rem; font-weight:800; letter-spacing:6px; font-family:monospace; color:var(--c-cream);">
-              ${otpCode}
-            </div>
-            <div class="text-muted text-xs" style="font-size:10px;">(Security code expires in 5 minutes)</div>
           </div>
 
           <form onsubmit="handleVerifyOTPSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
             <div>
-              <label class="text-xs text-muted" style="display:block; margin-bottom:6px;">Enter 6-Digit OTP Code</label>
-              <input id="modal-otp-input" required maxlength="6" pattern="[0-9]{6}" placeholder="••••••" autofocus style="text-align:center; font-size:1.4rem; font-weight:bold; letter-spacing:8px; font-family:monospace; padding:12px;" />
+              <label class="text-xs text-muted" style="display:block; margin-bottom:6px;">Enter 6-Digit Code</label>
+              <input id="modal-otp-input" required maxlength="6" pattern="[0-9]{6}" placeholder="••••••" autofocus style="text-align:center; font-size:1.5rem; font-weight:bold; letter-spacing:8px; font-family:monospace; padding:12px; background:var(--c-charcoal-dark);" />
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--c-sand);">
@@ -879,13 +856,12 @@
 
             <div style="display:flex; gap:8px; margin-top:6px;">
               <button type="button" onclick="showAuthModal(pendingAuth.type)" class="btn btn-secondary">&larr; Back</button>
-              <button type="submit" class="btn btn-primary" style="flex:1;">✅ Verify & Enter Workspace</button>
+              <button type="submit" class="btn" style="flex:1; background:#5b8def; color:white; font-weight:700; border-radius:8px;">Verify & Enter &rarr;</button>
             </div>
           </form>
         </div>
       `);
 
-      showToast("Security OTP code sent to " + email + " — Code: " + otpCode);
       startOTPTimer();
     }
 
@@ -909,13 +885,14 @@
       }, 1000);
     }
 
-    function resendOTP() {
+    async function resendOTP() {
       if (!pendingAuth) return;
       const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
       pendingAuth.otp = newOtp;
       pendingAuth.expiresAt = Date.now() + 5 * 60 * 1000;
+      await dispatchOTPEmail(pendingAuth.data.email, newOtp, pendingAuth.type, pendingAuth.data.name);
       showOtpVerificationModal();
-      showToast("New OTP generated: " + newOtp);
+      showToast("A new verification code was sent to your email inbox.");
     }
 
     // --- STEP 4: VERIFY OTP AND FINALIZE LOGIN/REGISTRATION ---
