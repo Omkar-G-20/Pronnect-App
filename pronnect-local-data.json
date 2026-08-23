@@ -1,21 +1,5 @@
 {
-  "users": [
-    {
-      "id": "u_omkar_builder",
-      "name": "Omkar Gurav",
-      "email": "omkargurav3217@gmail.com",
-      "school": "Dayananda Sagar College of Engineering",
-      "githubId": "Omkar-G-20",
-      "githubUrl": "https://github.com/Omkar-G-20",
-      "password": "123456789",
-      "headline": "Lead Full-Stack Builder & Architect",
-      "bio": "Building cutting-edge collaborative workspaces, real-time sync systems, and hackathon prototypes.",
-      "skills": ["Full-Stack", "AI/ML", "React", "Node.js", "Python"],
-      "interests": ["Robotics", "Web3", "Hackathons", "Autonomous Systems"],
-      "picture": "https://api.dicebear.com/7.x/bottts/svg?seed=Omkar%20Gurav",
-      "createdAt": "2026-08-23T15:00:00.000Z"
-    }
-  ],
+  "users": [],
   "projects": [],
   "members": [],
   "joinRequests": [],
