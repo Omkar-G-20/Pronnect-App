@@ -6,7 +6,15 @@
   <title>Pronnect — Discover Teams & Build Projects Together</title>
   <meta name="description" content="Pronnect is a modern platform to discover project teammates, manage Kanban tasks, chat in real-time, and ship collaborative projects.">
   
-  <!-- Gun.js Real-Time Decentralized Mesh Sync (Unlimited, Zero Daily Request Limits) -->
+  <!-- Google Fonts: Montserrat (Headings) & Raleway (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Gun.js Real-Time Decentralized Mesh Sync -->
   <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 
   <style>
@@ -20,16 +28,22 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--c-charcoal); color: var(--c-cream); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.5; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
-    
+    html { scroll-behavior: smooth; }
+    body { background-color: var(--c-charcoal); color: var(--c-cream); font-family: 'Raleway', sans-serif; line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+    h1, h2, h3, h4, h5, h6, .font-heading, .btn, .service-nav-btn { font-family: 'Montserrat', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; }
+
     /* Layout & Container */
     .container { max-width: 1200px; margin: 0 auto; width: 100%; padding: 24px 16px; flex: 1; }
-    nav { background: rgba(46, 46, 46, 0.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(221, 213, 205, 0.25); position: sticky; top: 0; z-index: 50; padding: 14px 24px; }
-    .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-    .nav-links { display: flex; gap: 8px; align-items: center; }
+    
+    /* Logic Theme Sticky Header */
+    nav { background: rgba(34, 32, 32, 0.95); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(221, 213, 205, 0.2); position: sticky; top: 0; z-index: 100; padding: 12px 24px; }
+    .nav-inner { max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .nav-links { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+    .nav-item-link { color: var(--c-sand); text-decoration: none; font-size: 0.78rem; font-weight: 700; font-family: 'Montserrat', sans-serif; padding: 8px 12px; border-radius: 6px; transition: all 0.2s; text-transform: uppercase; }
+    .nav-item-link:hover, .nav-item-link.active { color: var(--c-cream); background: rgba(125, 64, 71, 0.4); }
     
     /* Glassmorphism & Cards */
-    .glass-card { background: rgba(56, 52, 52, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(221, 213, 205, 0.22); border-radius: 14px; padding: 22px; transition: transform 0.2s, border-color 0.2s; color: var(--c-cream); }
+    .glass-card { background: rgba(56, 52, 52, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(221, 213, 205, 0.22); border-radius: 12px; padding: 24px; transition: transform 0.2s, border-color 0.2s; color: var(--c-cream); }
     .glass-card:hover { border-color: var(--c-burgundy); }
     .glass-pill { background: rgba(46, 46, 46, 0.85); border: 1px solid rgba(221, 213, 205, 0.35); border-radius: 9999px; }
     
@@ -47,28 +61,28 @@
     .gap-4 { gap: 16px; }
     
     /* Typography & Visuals */
-    .gradient-text { background: linear-gradient(135deg, var(--c-cream) 0%, var(--c-sand) 40%, var(--c-burgundy) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+    .gradient-text { background: linear-gradient(135deg, var(--c-cream) 0%, var(--c-sand) 40%, var(--c-burgundy) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
     .hero-glow { position: absolute; top: -120px; left: 50%; transform: translateX(-50%); width: 600px; height: 350px; background: radial-gradient(circle, rgba(125, 64, 71, 0.4) 0%, rgba(221, 213, 205, 0.15) 50%, transparent 70%); filter: blur(60px); pointer-events: none; z-index: 0; }
     .text-sm { font-size: 0.875rem; }
     .text-xs { font-size: 0.75rem; }
     .text-muted { color: var(--c-sand); opacity: 0.85; }
     
     /* Badges */
-    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; background: var(--c-charcoal); border: 1px solid rgba(221, 213, 205, 0.3); color: var(--c-sand); }
+    .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; font-family: 'Montserrat', sans-serif; background: var(--c-charcoal); border: 1px solid rgba(221, 213, 205, 0.3); color: var(--c-sand); }
     .badge-indigo, .badge-accent { background: rgba(125, 64, 71, 0.25); border-color: rgba(125, 64, 71, 0.6); color: var(--c-cream); }
     .badge-green { background: rgba(125, 64, 71, 0.2); border-color: rgba(221, 213, 205, 0.4); color: var(--c-sand); }
     .badge-yellow { background: rgba(221, 213, 205, 0.15); border-color: rgba(221, 213, 205, 0.4); color: var(--c-sand); }
     
     /* Forms & Buttons */
-    input, textarea, select { width: 100%; padding: 10px 14px; background: var(--c-charcoal-dark); border: 1px solid rgba(221, 213, 205, 0.25); border-radius: 8px; color: var(--c-cream); font-size: 0.875rem; outline: none; transition: border-color 0.2s; }
+    input, textarea, select { width: 100%; padding: 12px 14px; background: var(--c-charcoal-dark); border: 1px solid rgba(221, 213, 205, 0.25); border-radius: 8px; color: var(--c-cream); font-family: 'Raleway', sans-serif; font-size: 0.875rem; outline: none; transition: border-color 0.2s; }
     input:focus, textarea:focus, select:focus { border-color: var(--c-burgundy); }
-    button { cursor: pointer; border: none; border-radius: 8px; font-weight: 500; font-size: 0.875rem; transition: all 0.2s; }
-    .btn { padding: 9px 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    button { cursor: pointer; border: none; border-radius: 8px; font-weight: 700; font-size: 0.82rem; transition: all 0.2s; }
+    .btn { padding: 10px 20px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-primary { background: var(--c-burgundy); color: var(--c-cream); box-shadow: 0 4px 14px rgba(125, 64, 71, 0.4); }
     .btn-primary:hover { background: #964e56; transform: translateY(-1px); }
     .btn-secondary { background: var(--c-charcoal-card); color: var(--c-cream); border: 1px solid rgba(221, 213, 205, 0.3); }
     .btn-secondary:hover { background: #444040; border-color: var(--c-sand); }
-    .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+    .btn-sm { padding: 6px 14px; font-size: 0.75rem; }
     
     /* Chat Layout & Presence Sidebar */
     .chat-layout { display: grid; grid-template-columns: 1fr 240px; gap: 16px; }
@@ -134,46 +148,68 @@
     .input-toggle-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; font-size: 1rem; color: var(--c-sand); padding: 4px; border-radius: 4px; cursor: pointer; }
     .input-toggle-btn:hover { color: var(--c-cream); }
 
-    /* Landing Page Section Components */
-    .section-title { text-align: center; margin-bottom: 24px; }
-    .section-title h2 { font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; color: var(--c-cream); letter-spacing: -0.02em; }
-    .section-separator { width: 60px; height: 3px; background: var(--c-burgundy); margin: 10px auto 14px; border-radius: 2px; }
+    /* Logic Theme Sections Styling */
+    .section-title { text-align: center; margin-bottom: 32px; }
+    .section-title h2, .section-title h3 { font-size: clamp(1.8rem, 3.5vw, 2.4rem); font-weight: 800; color: var(--c-cream); letter-spacing: 0.05em; }
+    .section-separator { width: 50px; height: 3px; background: var(--c-burgundy); margin: 10px auto 14px; border-radius: 2px; }
     
-    .service-nav-btn { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.2); color: var(--c-sand); padding: 14px 20px; border-radius: 12px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s ease; flex: 1; min-width: 140px; }
+    .service-nav-btn { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.2); color: var(--c-sand); padding: 16px 20px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s ease; flex: 1; min-width: 140px; }
     .service-nav-btn.active, .service-nav-btn:hover { background: var(--c-burgundy); color: var(--c-cream); border-color: var(--c-burgundy); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(125,64,71,0.35); }
 
-    .accordion-header { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.2); padding: 14px 18px; border-radius: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; color: var(--c-cream); transition: all 0.2s; }
+    .accordion-header { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.2); padding: 14px 18px; border-radius: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; color: var(--c-cream); transition: all 0.2s; }
     .accordion-header:hover { border-color: var(--c-burgundy); }
     .accordion-body { background: rgba(0,0,0,0.2); border: 1px solid rgba(221,213,205,0.1); border-top: none; border-radius: 0 0 10px 10px; padding: 14px 18px; color: var(--c-sand); font-size: 0.875rem; line-height: 1.6; display: none; }
     .accordion-body.active { display: block; }
 
-    .stat-card { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.2); border-radius: 12px; padding: 24px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, border-color 0.2s; }
-    .stat-card:hover { transform: translateY(-3px); border-color: var(--c-burgundy); }
-    .stat-number { font-size: 2.4rem; font-weight: 800; color: var(--c-cream); line-height: 1; }
+    .stat-card { background: rgba(34,32,32,0.85); border: 1px solid rgba(221,213,205,0.2); border-radius: 12px; padding: 30px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s, border-color 0.2s; }
+    .stat-card:hover { transform: translateY(-4px); border-color: var(--c-burgundy); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .stat-number { font-size: 2.8rem; font-weight: 900; font-family: 'Montserrat', sans-serif; color: var(--c-cream); line-height: 1; }
 
-    .filter-tab-btn { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.25); color: var(--c-sand); padding: 8px 16px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .filter-tab-btn { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.25); color: var(--c-sand); padding: 8px 18px; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; font-family: 'Montserrat', sans-serif; cursor: pointer; transition: all 0.2s; }
     .filter-tab-btn.active, .filter-tab-btn:hover { background: var(--c-burgundy); color: var(--c-cream); border-color: var(--c-burgundy); }
+
+    /* Team Card with Hover Overlay */
+    .team-card { position: relative; border-radius: 12px; overflow: hidden; background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.2); transition: transform 0.2s; }
+    .team-card:hover { transform: translateY(-4px); border-color: var(--c-burgundy); }
+    .team-img { width: 100%; height: 260px; object-fit: cover; display: block; }
+    .team-info { padding: 16px; text-align: center; }
+    .team-name { font-size: 1rem; font-weight: 800; color: var(--c-cream); }
+    .team-role { font-size: 0.75rem; color: var(--c-sand); margin-top: 2px; }
+    .team-socials { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+    .team-socials a { width: 30px; height: 30px; border-radius: 50%; background: rgba(221,213,205,0.1); display: flex; align-items: center; justify-content: center; color: var(--c-cream); text-decoration: none; font-size: 0.8rem; transition: background 0.2s; }
+    .team-socials a:hover { background: var(--c-burgundy); }
+
+    /* Skillbar */
+    .skillbar-container { display: flex; flex-direction: column; gap: 14px; }
+    .skillbar-item { display: flex; flex-direction: column; gap: 6px; }
+    .skillbar-title { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.8rem; }
+    .skillbar-track { height: 8px; background: rgba(0,0,0,0.4); border-radius: 9999px; overflow: hidden; border: 1px solid rgba(221,213,205,0.15); }
+    .skillbar-fill { height: 100%; background: linear-gradient(90deg, var(--c-sand), var(--c-burgundy)); border-radius: 9999px; }
   </style>
 </head>
 
 
 <body>
-  <!-- NAV -->
-  <nav>
+  <!-- LOGIC THEME NAVBAR -->
+  <nav id="main-nav">
     <div class="nav-inner">
-      <div style="display:flex; align-items:center; gap:20px;">
+      <div style="display:flex; align-items:center; gap:16px;">
         <div onclick="navigate('home')" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
           <div style="width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, var(--c-cream), var(--c-burgundy)); display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-charcoal); font-size:1.1rem; box-shadow:0 0 16px rgba(125,64,71,0.4);">P</div>
-          <span class="gradient-text" style="font-size:1.35rem;">Pronnect</span>
+          <span class="gradient-text" style="font-size:1.3rem; font-family:'Montserrat', sans-serif;">Pronnect</span>
         </div>
         <div class="nav-links">
-          <button class="btn btn-secondary" onclick="navigate('home')">Home</button>
-          <button class="btn btn-secondary" onclick="navigate('explore')">Explore Projects</button>
-          <button class="btn btn-secondary" onclick="navigate('global-chat')">Community Chat</button>
-          <button class="btn btn-secondary" onclick="navigate('new-project')">+ Create Project</button>
+          <a href="#home" onclick="scrollToSection('home')" class="nav-item-link active">Home</a>
+          <a href="#service" onclick="scrollToSection('service')" class="nav-item-link">Service</a>
+          <a href="#features" onclick="scrollToSection('features')" class="nav-item-link">Featured</a>
+          <a href="#about" onclick="scrollToSection('about')" class="nav-item-link">About</a>
+          <a href="#team" onclick="scrollToSection('team')" class="nav-item-link">Teams</a>
+          <a href="#portfolio" onclick="scrollToSection('portfolio')" class="nav-item-link">Works</a>
+          <a href="#testimonial" onclick="scrollToSection('testimonial')" class="nav-item-link">Testimonial</a>
+          <a href="#contact" onclick="scrollToSection('contact')" class="nav-item-link">Contact</a>
         </div>
       </div>
-      <div id="nav-auth" style="display:flex; align-items:center; gap:12px;"></div>
+      <div id="nav-auth" style="display:flex; align-items:center; gap:10px;"></div>
     </div>
   </nav>
 
@@ -1023,18 +1059,46 @@
     }
 
 
-    // --- 0. MULTIPURPOSE THEME STARTUP LANDING PAGE ---
+    // --- 0. LOGIC THEME MULTIPURPOSE PLATFORM ENGINE ---
     let activeDomainTab = 'web';
+    let activeAboutTab = 'mission';
     let activePortfolioFilter = 'all';
+
+    function scrollToSection(id) {
+      if (currentView !== 'home') {
+        navigate('home');
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
 
     function switchDomainTab(domain) {
       activeDomainTab = domain;
-      const tabs = ['web', 'app', 'ai', 'ui'];
+      const tabs = ['web', 'app', 'graphic', 'game'];
       tabs.forEach(t => {
         const btn = document.getElementById('tab-btn-' + t);
         const pane = document.getElementById('tab-pane-' + t);
         if (btn) btn.className = 'service-nav-btn' + (t === domain ? ' active' : '');
         if (pane) pane.style.display = t === domain ? 'block' : 'none';
+      });
+    }
+
+    function switchAboutTab(tab) {
+      activeAboutTab = tab;
+      const tabs = ['mission', 'goal', 'achievements'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('about-tab-btn-' + t);
+        const pane = document.getElementById('about-pane-' + t);
+        if (btn) {
+          btn.style.background = t === tab ? 'var(--c-burgundy)' : 'var(--c-charcoal-dark)';
+          btn.style.color = t === tab ? 'var(--c-cream)' : 'var(--c-sand)';
+        }
+        if (pane) pane.style.display = t === tab ? 'block' : 'none';
       });
     }
 
@@ -1058,7 +1122,7 @@
 
     function filterLandingPortfolio(category) {
       activePortfolioFilter = category;
-      const btns = ['all', 'robotics', 'fullstack', 'ui'];
+      const btns = ['all', 'web', 'mobile', 'robotics', 'design'];
       btns.forEach(c => {
         const btn = document.getElementById('filter-btn-' + c);
         if (btn) btn.className = 'filter-tab-btn' + (c === category ? ' active' : '');
@@ -1070,39 +1134,86 @@
       const projs = store.projects || [];
       const filtered = category === 'all' ? projs : projs.filter(p => {
         const tags = (p.tags || []).map(t => t.toLowerCase());
-        if (category === 'robotics') return tags.some(t => t.includes('robot') || t.includes('ai') || t.includes('hardware') || t.includes('drone'));
-        if (category === 'fullstack') return tags.some(t => t.includes('web') || t.includes('stack') || t.includes('next') || t.includes('crypto'));
-        if (category === 'ui') return tags.some(t => t.includes('design') || t.includes('ui') || t.includes('figma') || t.includes('creative'));
+        if (category === 'web') return tags.some(t => t.includes('web') || t.includes('stack') || t.includes('next') || t.includes('cloud') || t.includes('node'));
+        if (category === 'mobile') return tags.some(t => t.includes('app') || t.includes('mobile') || t.includes('react native') || t.includes('flutter') || t.includes('ios'));
+        if (category === 'robotics') return tags.some(t => t.includes('robot') || t.includes('ai') || t.includes('hardware') || t.includes('drone') || t.includes('cv'));
+        if (category === 'design') return tags.some(t => t.includes('design') || t.includes('ui') || t.includes('figma') || t.includes('ux') || t.includes('graphic'));
         return true;
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="glass-card" style="grid-column:1/-1; text-align:center; padding:32px; color:var(--c-sand);">No projects found in this domain yet. <button onclick="navigate('new-project')" class="btn btn-primary btn-sm" style="margin-left:8px;">+ Start First Project</button></div>`;
+        container.innerHTML = `
+          <div class="glass-card" style="grid-column:1/-1; text-align:center; padding:36px; color:var(--c-sand);">
+            <div style="font-size:2rem; margin-bottom:8px;">📁</div>
+            <div style="font-weight:700; font-size:1.1rem; color:var(--c-cream);">No projects in this category yet.</div>
+            <p class="text-muted text-xs" style="margin:8px 0 16px;">Be the first team lead to publish a project in this domain!</p>
+            <button onclick="navigate('new-project')" class="btn btn-primary btn-sm">+ Create New Project</button>
+          </div>
+        `;
       } else {
-        container.innerHTML = filtered.slice(0, 6).map(p => {
+        const sampleImages = [
+          'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80',
+          'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80',
+          'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80',
+          'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80',
+          'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80',
+          'https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&w=600&q=80'
+        ];
+
+        container.innerHTML = filtered.slice(0, 6).map((p, idx) => {
           const leader = store.users.find(u => u.id === p.leaderId);
           const members = store.members.filter(m => m.projectId === p.id).length + 1;
           const isPriv = p.visibility === 'PRIVATE';
+          const imgUrl = sampleImages[idx % sampleImages.length];
+
           return `
-            <div class="glass-card flex flex-col justify-between" style="cursor:pointer; transition:transform 0.2s, border-color 0.2s;" onmouseover="this.style.borderColor='var(--c-burgundy)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(221,213,205,0.2)'; this.style.transform='translateY(0)'" onclick="handleProjectCardClick('${p.id}')">
-              <div>
-                <div class="flex justify-between items-center" style="margin-bottom:8px;">
-                  <div style="font-weight:700; font-size:1.05rem; color:var(--c-cream);">${escapeHtml(p.name)}</div>
+            <div class="team-card" style="display:flex; flex-direction:column; cursor:pointer;" onclick="handleProjectCardClick('${p.id}')">
+              <div style="position:relative; height:180px; overflow:hidden;">
+                <img src="${imgUrl}" alt="${escapeHtml(p.name)}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'" />
+                <div style="position:absolute; top:10px; right:10px;">
                   ${isPriv ? '<span class="badge badge-yellow">🔒 Private</span>' : '<span class="badge badge-green">🌐 Public</span>'}
                 </div>
-                <p class="text-muted text-xs" style="margin-bottom:12px; line-height:1.5;">${escapeHtml(p.description)}</p>
-                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:12px;">
-                  ${(p.tags || []).map(t => `<span class="badge badge-indigo">${escapeHtml(t)}</span>`).join('')}
-                </div>
               </div>
-              <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(221,213,205,0.15); padding-top:10px; font-size:0.75rem; color:var(--c-sand);">
-                <div>Led by <strong>${leader ? escapeHtml(leader.name) : 'Lead Builder'}</strong></div>
-                <span class="badge">${members} Member${members !== 1 ? 's' : ''}</span>
+              <div style="padding:18px; display:flex; flex-direction:column; justify-content:space-between; flex:1; background:var(--c-charcoal-dark);">
+                <div>
+                  <h4 style="font-size:1.05rem; font-weight:800; color:var(--c-cream); margin-bottom:6px;">${escapeHtml(p.name)}</h4>
+                  <p class="text-muted text-xs" style="margin-bottom:12px; line-height:1.5;">${escapeHtml(p.description)}</p>
+                  <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:14px;">
+                    ${(p.tags || []).map(t => `<span class="badge badge-indigo">${escapeHtml(t)}</span>`).join('')}
+                  </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(221,213,205,0.15); padding-top:10px; font-size:0.75rem; color:var(--c-sand);">
+                  <div>Led by <strong>${leader ? escapeHtml(leader.name) : 'Lead Builder'}</strong></div>
+                  <span class="badge">${members} Member${members !== 1 ? 's' : ''}</span>
+                </div>
               </div>
             </div>
           `;
         }).join('');
       }
+    }
+
+    function openDemoVideoModal() {
+      openModal("Pronnect Platform Tour & Real-Time Demo", `
+        <div style="display:flex; flex-direction:column; gap:16px; text-align:center;">
+          <div style="position:relative; border-radius:12px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); background:#000;">
+            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80" style="width:100%; height:240px; object-fit:cover; opacity:0.85;" />
+            <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(34,32,32,0.65);">
+              <div style="width:54px; height:54px; border-radius:50%; background:var(--c-burgundy); display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:var(--c-cream); box-shadow:0 0 25px rgba(125,64,71,0.8);">
+                <i class="fa fa-check"></i>
+              </div>
+              <div style="font-weight:800; font-family:'Montserrat',sans-serif; color:var(--c-cream); font-size:1.1rem;">LIVE PEER-TO-PEER MESH ENGINE</div>
+            </div>
+          </div>
+          <div style="text-align:left; font-size:0.85rem; color:var(--c-sand); line-height:1.6; display:flex; flex-direction:column; gap:8px;">
+            <div>⚡ <strong>Zero-NPM Native Speed:</strong> Loads instantly with zero heavy frontend bundle friction.</div>
+            <div>🎙️ <strong>Voice Notes & Media:</strong> Record and share instant microphone audio messages with live waveform.</div>
+            <div>📊 <strong>Consensus Polling:</strong> Live voting on architecture and design choices.</div>
+            <div>🔒 <strong>Encrypted Workspaces:</strong> Password-protected stealth projects with leader approval.</div>
+          </div>
+          <button onclick="closeModal(); navigate('explore');" class="btn btn-primary" style="margin-top:8px;">🚀 Explore Live Workspaces Now</button>
+        </div>
+      `);
     }
 
     function handleContactSubmit(e) {
@@ -1122,436 +1233,749 @@
     function renderLandingPageView() {
       const root = document.getElementById('app-root');
       root.innerHTML = `
-        <div style="position:relative; display:flex; flex-direction:column; gap:64px; padding:10px 0 40px;">
+        <div style="position:relative; display:flex; flex-direction:column; gap:80px; padding:10px 0 60px;">
           <div class="hero-glow"></div>
 
-          <!-- 1. HERO SECTION WITH IMAGE BANNER & FAST CTA -->
-          <div style="position:relative; border-radius:20px; overflow:hidden; border:1px solid rgba(125,64,71,0.4); box-shadow:0 25px 60px rgba(0,0,0,0.7); background:#232020;">
-            <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(46,46,46,0.85) 0%, rgba(35,32,32,0.95) 100%), url('/public/images/hero.jpg') center/cover no-repeat; filter:brightness(0.85); z-index:1;"></div>
+          <!-- 1. HOME HERO SLIDER (SECTION #home) -->
+          <section id="home" style="position:relative; border-radius:20px; overflow:hidden; border:1px solid rgba(125,64,71,0.4); box-shadow:0 25px 60px rgba(0,0,0,0.7); background:#232020;">
+            <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(46,46,46,0.85) 0%, rgba(35,32,32,0.95) 100%), url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat; filter:brightness(0.75); z-index:1;"></div>
             
-            <div style="position:relative; z-index:2; padding:60px 28px; text-align:center; max-width:920px; margin:0 auto; display:flex; flex-direction:column; align-items:center; gap:22px;">
-              <div class="glass-pill" style="padding:6px 18px; display:inline-flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--c-sand); border:1px solid rgba(221,213,205,0.3);">
+            <div style="position:relative; z-index:2; padding:70px 24px; text-align:center; max-width:940px; margin:0 auto; display:flex; flex-direction:column; align-items:center; gap:24px;">
+              <div class="glass-pill" style="padding:6px 20px; display:inline-flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:var(--c-sand); border:1px solid rgba(221,213,205,0.3);">
                 <span style="width:8px; height:8px; border-radius:50%; background:var(--c-burgundy); box-shadow:0 0 10px var(--c-burgundy);"></span>
-                <span>The Premier Collaborative Workspace for Engineers, Designers & Hackers</span>
+                <span>LOGIC MULTIPURPOSE ENGINEERING & PROJECT PLATFORM</span>
               </div>
 
-              <h1 style="font-size:clamp(2.3rem, 5.2vw, 3.8rem); font-weight:900; line-height:1.12; letter-spacing:-0.03em; color:var(--c-cream);">
-                BUILD & SHIP <span class="gradient-text">BREAKTHROUGH PROJECTS</span> TOGETHER
+              <h1 style="font-size:clamp(2.4rem, 5.5vw, 4.2rem); font-weight:900; line-height:1.1; letter-spacing:0.04em; color:var(--c-cream);">
+                WELCOME TO OUR <span class="gradient-text">PRONNECT LOGIC</span>
               </h1>
 
-              <p class="text-muted" style="font-size:clamp(1rem, 2vw, 1.2rem); max-width:720px; line-height:1.6; color:var(--c-sand);">
-                Pronnect unites student developers, hardware tinkerers, and UI/UX designers with real-time room chats, voice notes, Kanban boards, consensus polls, and private encrypted workspaces.
+              <p style="font-size:clamp(1.05rem, 2.2vw, 1.25rem); max-width:760px; line-height:1.6; color:var(--c-sand); font-weight:500;">
+                We Make Awesome Projects & Workspaces For Your Engineering Team. Connect with builders, manage tasks on Kanban boards, chat in real-time, and ship breakthrough ideas.
               </p>
 
-              <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px;">
+              <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:8px;">
+                <a href="#about" onclick="scrollToSection('about')" class="btn btn-primary" style="padding:14px 28px; text-decoration:none; font-size:0.85rem;">
+                  LEARN MORE &darr;
+                </a>
                 ${!currentUser ? `
                   <button onclick="triggerGoogleSignIn()" class="btn" style="background:#ffffff; color:#1f2937; padding:12px 24px; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,0.4); display:flex; align-items:center; gap:10px;">
                     <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
                     <span>⚡ 1-Click Fast Google Login</span>
                   </button>
-                  <button onclick="showAuthModal('signup')" class="btn btn-primary" style="padding:12px 26px;">
-                    ✨ Create Account &rarr;
-                  </button>
                 ` : `
-                  <button onclick="navigate('explore')" class="btn btn-primary" style="padding:12px 28px;">
+                  <button onclick="navigate('explore')" class="btn btn-secondary" style="padding:14px 28px;">
                     🚀 Open Workspace Hub &rarr;
                   </button>
-                  <button onclick="navigate('new-project')" class="btn btn-secondary" style="padding:12px 24px;">
-                    + Start New Project
-                  </button>
                 `}
-                <button onclick="navigate('explore')" class="btn btn-secondary" style="padding:12px 24px;">
-                  🔍 Explore Projects
+                <button onclick="navigate('explore')" class="btn btn-secondary" style="padding:14px 24px;">
+                  🔍 EXPLORE WORKS
                 </button>
               </div>
 
-              <!-- Social Proof Counter -->
-              <div style="display:flex; align-items:center; gap:12px; margin-top:10px; font-size:0.82rem; color:var(--c-sand);">
-                <div style="display:flex; margin-left:8px;">
-                  <div style="width:28px; height:28px; border-radius:50%; background:var(--c-burgundy); border:2px solid var(--c-charcoal); display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-cream); font-size:10px;">A</div>
-                  <div style="width:28px; height:28px; border-radius:50%; background:#964e56; border:2px solid var(--c-charcoal); margin-left:-8px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-cream); font-size:10px;">S</div>
-                  <div style="width:28px; height:28px; border-radius:50%; background:var(--c-sand); color:var(--c-charcoal); border:2px solid var(--c-charcoal); margin-left:-8px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px;">O</div>
+              <!-- Live Trust Metrics -->
+              <div style="display:flex; align-items:center; gap:12px; margin-top:14px; font-size:0.85rem; color:var(--c-sand);">
+                <div style="display:flex;">
+                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" style="width:28px; height:28px; border-radius:50%; border:2px solid var(--c-charcoal); object-fit:cover;" />
+                  <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=100&q=80" style="width:28px; height:28px; border-radius:50%; border:2px solid var(--c-charcoal); margin-left:-8px; object-fit:cover;" />
+                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" style="width:28px; height:28px; border-radius:50%; border:2px solid var(--c-charcoal); margin-left:-8px; object-fit:cover;" />
                 </div>
-                <span>Joined by <strong>2,400+ developers</strong> from top colleges & hackathons</span>
+                <span>Trusted by <strong>2,400+ student engineers</strong> & hackathon leaders</span>
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- 2. DOMAIN & SERVICES SPECIALTY TABS -->
-          <div class="glass-card" style="padding:32px 24px;">
+
+          <!-- 2. SERVICE DOMAINS SECTION (SECTION #service) -->
+          <section id="service" class="glass-card" style="padding:40px 28px;">
             <div class="section-title">
-              <h2>SPECIALIZED COLLABORATION DOMAINS</h2>
+              <h2>SERVICES</h2>
               <div class="section-separator"></div>
-              <p class="text-muted text-xs">Explore curated workflows and sprint tooling tailored for each engineering domain.</p>
+              <p class="text-muted text-xs">Full-spectrum development workflows engineered for multidisciplinary builders.</p>
             </div>
 
-            <!-- Domain Switcher Buttons -->
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px;">
+            <!-- Service Tabs -->
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px;">
               <button id="tab-btn-web" onclick="switchDomainTab('web')" class="service-nav-btn active">
-                <span style="font-size:1.4rem;">💻</span>
-                <span>WEB & CLOUD</span>
+                <i class="fa fa-laptop" style="font-size:1.5rem;"></i>
+                <span>WEB DESIGN</span>
               </button>
               <button id="tab-btn-app" onclick="switchDomainTab('app')" class="service-nav-btn">
-                <span style="font-size:1.4rem;">📱</span>
-                <span>MOBILE & APPS</span>
+                <i class="fa fa-mobile-screen-button" style="font-size:1.5rem;"></i>
+                <span>APP DESIGN</span>
               </button>
-              <button id="tab-btn-ai" onclick="switchDomainTab('ai')" class="service-nav-btn">
-                <span style="font-size:1.4rem;">🤖</span>
-                <span>AI & ROBOTICS</span>
+              <button id="tab-btn-graphic" onclick="switchDomainTab('graphic')" class="service-nav-btn">
+                <i class="fa fa-palette" style="font-size:1.5rem;"></i>
+                <span>GRAPHIC DESIGN</span>
               </button>
-              <button id="tab-btn-ui" onclick="switchDomainTab('ui')" class="service-nav-btn">
-                <span style="font-size:1.4rem;">🎨</span>
-                <span>UI/UX & PRODUCT</span>
+              <button id="tab-btn-game" onclick="switchDomainTab('game')" class="service-nav-btn">
+                <i class="fa fa-gamepad" style="font-size:1.5rem;"></i>
+                <span>AI & GAME DESIGN</span>
               </button>
             </div>
 
-            <!-- Tab Content Panes -->
+            <!-- Tab Panes -->
             <div id="tab-pane-web" style="display:block;">
-              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; align-items:center;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:32px; align-items:center;">
                 <div>
-                  <h3 style="font-size:1.4rem; font-weight:700; color:var(--c-cream); margin-bottom:8px;">Full-Stack & Cloud Architecture</h3>
-                  <p class="text-muted text-sm" style="line-height:1.6; margin-bottom:14px;">
-                    Coordinate Next.js frontends, zero-downtime microservices, and distributed database synchronization. Share architecture diagrams, track sprint tickets on the Kanban board, and verify PRs in real time.
+                  <h3 style="font-size:1.5rem; font-weight:800; color:var(--c-cream); margin-bottom:10px;">WEB DESIGN & ARCHITECTURE</h3>
+                  <div style="width:40px; height:2px; background:var(--c-burgundy); margin-bottom:16px;"></div>
+                  <p class="text-muted text-sm" style="line-height:1.7; margin-bottom:16px;">
+                    Build robust, responsive web platforms using modern HTML, JavaScript, and zero-downtime distributed mesh backends. Coordinate microservices, track sprint cards on Kanban, and verify architecture in real time.
                   </p>
-                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
-                    <span class="badge badge-indigo">TypeScript</span>
-                    <span class="badge badge-indigo">Node.js HTTP</span>
-                    <span class="badge badge-indigo">PostgreSQL</span>
-                    <span class="badge badge-indigo">Docker</span>
-                  </div>
-                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">Explore Web Projects &rarr;</button>
+                  <p class="text-muted text-sm" style="line-height:1.7; margin-bottom:20px;">
+                    Whether launching a hackathon MVP or deploying enterprise cloud solutions, our workspaces give you scoped rooms and live collaboration.
+                  </p>
+                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">LEARN MORE &rarr;</button>
                 </div>
-                <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); border-radius:12px; padding:20px; font-family:monospace; font-size:0.8rem;">
-                  <div style="color:var(--c-sand); margin-bottom:8px;">// pronnect-stack.config.js</div>
-                  <div style="color:#4ade80;">export default {</div>
-                  <div style="padding-left:14px; color:var(--c-cream);">runtime: 'Node 20+',</div>
-                  <div style="padding-left:14px; color:var(--c-cream);">syncMesh: 'Peer-to-Peer GunDB',</div>
-                  <div style="padding-left:14px; color:var(--c-cream);">auth: 'Google OAuth + OTP',</div>
-                  <div style="padding-left:14px; color:var(--c-cream);">status: 'Ready to Deploy'</div>
-                  <div style="color:#4ade80;">};</div>
+                <div style="border-radius:12px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                  <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80" alt="Web Design" style="width:100%; height:240px; object-fit:cover;" />
                 </div>
               </div>
             </div>
 
             <div id="tab-pane-app" style="display:none;">
-              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; align-items:center;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:32px; align-items:center;">
                 <div>
-                  <h3 style="font-size:1.4rem; font-weight:700; color:var(--c-cream); margin-bottom:8px;">Cross-Platform Mobile Apps</h3>
-                  <p class="text-muted text-sm" style="line-height:1.6; margin-bottom:14px;">
-                    Build React Native and Flutter mobile applications with shared asset repositories, audio voice message coordination, and instant leader review checkpoints.
+                  <h3 style="font-size:1.5rem; font-weight:800; color:var(--c-cream); margin-bottom:10px;">CROSS-PLATFORM APP DESIGN</h3>
+                  <div style="width:40px; height:2px; background:var(--c-burgundy); margin-bottom:16px;"></div>
+                  <p class="text-muted text-sm" style="line-height:1.7; margin-bottom:16px;">
+                    Create native iOS and Android experiences with shared asset pipelines, live voice notes, and instant leader review checkpoints.
                   </p>
-                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
-                    <span class="badge badge-indigo">React Native</span>
-                    <span class="badge badge-indigo">Flutter</span>
-                    <span class="badge badge-indigo">Swift</span>
-                    <span class="badge badge-indigo">Kotlin</span>
-                  </div>
-                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">Explore App Projects &rarr;</button>
+                  <p class="text-muted text-sm" style="line-height:1.7; margin-bottom:20px;">
+                    Supports offline-first state hydration so your team never loses momentum even with spotty connectivity.
+                  </p>
+                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">LEARN MORE &rarr;</button>
                 </div>
-                <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); border-radius:12px; padding:20px; text-align:center;">
-                  <div style="font-size:2.5rem; margin-bottom:8px;">📱</div>
-                  <div style="font-weight:700; color:var(--c-cream);">Native Performance & Offline-First</div>
-                  <div class="text-muted text-xs" style="margin-top:4px;">Unified real-time sync across iOS and Android test environments.</div>
+                <div style="border-radius:12px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                  <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80" alt="App Design" style="width:100%; height:240px; object-fit:cover;" />
                 </div>
               </div>
             </div>
 
-            <div id="tab-pane-ai" style="display:none;">
-              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; align-items:center;">
+            <div id="tab-pane-graphic" style="display:none;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:32px; align-items:center;">
                 <div>
-                  <h3 style="font-size:1.4rem; font-weight:700; color:var(--c-cream); margin-bottom:8px;">AI Research & Autonomous Robotics</h3>
-                  <p class="text-muted text-sm" style="line-height:1.6; margin-bottom:14px;">
-                    Form teams for training LLMs, PyTorch computer vision pipelines, and ROS2 autonomous drone firmware. Coordinate model weights and hardware telemetry in scoped rooms.
+                  <h3 style="font-size:1.5rem; font-weight:800; color:var(--c-cream); margin-bottom:10px;">GRAPHIC DESIGN & BRAND IDENTITY</h3>
+                  <div style="width:40px; height:2px; background:var(--c-burgundy); margin-bottom:16px;"></div>
+                  <p class="text-muted text-sm" style="line-height:1.7; margin-bottom:16px;">
+                    Pair UI/UX designers with engineers. Share direct Figma prototype links, organize design systems, and run team consensus polls on branding decisions.
                   </p>
-                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
-                    <span class="badge badge-indigo">PyTorch</span>
-                    <span class="badge badge-indigo">ROS2 Humble</span>
-                    <span class="badge badge-indigo">Computer Vision</span>
-                    <span class="badge badge-indigo">Jetson AI</span>
-                  </div>
-                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">Explore AI & Robotics &rarr;</button>
+                  <p class="text-muted text-sm" style="line-height:1.7; margin-bottom:20px;">
+                    Upload visual mockups directly into project media for one-click team downloads and feedback threads.
+                  </p>
+                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">LEARN MORE &rarr;</button>
                 </div>
-                <div style="border-radius:12px; overflow:hidden; border:1px solid rgba(221,213,205,0.2);">
-                  <img src="/public/images/featured.jpg" alt="Robotics workbench" style="width:100%; height:200px; object-fit:cover;" />
+                <div style="border-radius:12px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                  <img src="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80" alt="Graphic Design" style="width:100%; height:240px; object-fit:cover;" />
                 </div>
               </div>
             </div>
 
-            <div id="tab-pane-ui" style="display:none;">
-              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; align-items:center;">
+            <div id="tab-pane-game" style="display:none;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:32px; align-items:center;">
                 <div>
-                  <h3 style="font-size:1.4rem; font-weight:700; color:var(--c-cream); margin-bottom:8px;">UI/UX Design Systems & Sprints</h3>
-                  <p class="text-muted text-sm" style="line-height:1.6; margin-bottom:14px;">
-                    Pair designers with engineers. Share direct Figma prototype links, review media assets in the dedicated project resources tab, and run team consensus polls on design decisions.
+                  <h3 style="font-size:1.5rem; font-weight:800; color:var(--c-cream); margin-bottom:10px;">AI RESEARCH & GAME DESIGN</h3>
+                  <div style="width:40px; height:2px; background:var(--c-burgundy); margin-bottom:16px;"></div>
+                  <p class="text-muted text-sm" style="line-height:1.7; margin-bottom:16px;">
+                    Build PyTorch computer vision pipelines, Unity game engines, and autonomous robotics firmware in specialized rooms with hardware telemetry.
                   </p>
-                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
-                    <span class="badge badge-indigo">Figma</span>
-                    <span class="badge badge-indigo">Design Systems</span>
-                    <span class="badge badge-indigo">Wireframing</span>
-                    <span class="badge badge-indigo">Micro-interactions</span>
-                  </div>
-                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">Explore Design Projects &rarr;</button>
+                  <p class="text-muted text-sm" style="line-height:1.7; margin-bottom:20px;">
+                    Coordinate model checkpoints, datasets, and hardware schematics securely.
+                  </p>
+                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">LEARN MORE &rarr;</button>
                 </div>
-                <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); border-radius:12px; padding:20px; text-align:center;">
-                  <div style="font-size:2.5rem; margin-bottom:8px;">🎨</div>
-                  <div style="font-weight:700; color:var(--c-cream);">Figma-Quality Glassmorphism</div>
-                  <div class="text-muted text-xs" style="margin-top:4px;">Exact Tailwind-free design tokens with rich responsive typography.</div>
+                <div style="border-radius:12px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                  <img src="https://images.unsplash.com/photo-1555255707-c07966088b7b?auto=format&fit=crop&w=800&q=80" alt="AI & Game" style="width:100%; height:240px; object-fit:cover;" />
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- 3. FEATURED WORK SPOTLIGHT -->
-          <div class="glass-card" style="padding:32px 24px; border:1px solid rgba(125,64,71,0.5);">
+
+          <!-- 3. FEATURED WORK SHOWCASE (SECTION #features) -->
+          <section id="features" class="glass-card" style="padding:40px 28px; border:1px solid rgba(125,64,71,0.5);">
             <div class="section-title">
-              <h2>FEATURED TEAM SPOTLIGHT</h2>
+              <h2>FEATURED WORK</h2>
               <div class="section-separator"></div>
-              <p class="text-muted text-xs">Real engineering builds currently shipping on Pronnect workspaces.</p>
+              <p class="text-muted text-xs">Autonomous robotics & AI builds actively shipping in community workspaces.</p>
             </div>
 
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:28px; align-items:center;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:36px; align-items:center;">
               <div style="border-radius:14px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); box-shadow:0 10px 30px rgba(0,0,0,0.5);">
-                <img src="/public/images/featured.jpg" alt="Featured Autonomous Project" style="width:100%; height:260px; object-fit:cover;" />
+                <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=80" alt="Autonomous Robotics Project" style="width:100%; height:280px; object-fit:cover;" />
               </div>
-              <div style="display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; flex-direction:column; gap:14px;">
                 <div style="display:flex; align-items:center; gap:8px;">
                   <span class="badge badge-yellow">⭐ Hackathon Winner</span>
                   <span class="badge badge-green">🟢 Active Sprint</span>
                 </div>
-                <h3 style="font-size:1.5rem; font-weight:800; color:var(--c-cream);">AERO-SYNC: Autonomous Inspection Drone</h3>
-                <p class="text-muted text-sm" style="line-height:1.6;">
-                  Collaborative build uniting 4 student engineers across robotics hardware, embedded C++, and React dashboard visualization. Features edge LiDAR slam and live consensus telemetry.
+                <h3 style="font-size:1.6rem; font-weight:800; color:var(--c-cream);">AUTONOMOUS INSPECTION ROVER & DRONE</h3>
+                <p class="text-muted text-sm" style="line-height:1.7;">
+                  A full-stack robotics hardware project uniting 4 student engineers across ROS2 firmware, embedded Jetson C++, and web telemetry. Features real-time obstacle avoidance and edge camera streams.
                 </p>
-                <div style="background:var(--c-charcoal-dark); border-radius:8px; padding:12px 16px; font-size:0.8rem; border:1px solid rgba(221,213,205,0.15);">
-                  <div><strong>Team Lead:</strong> Alex Rivera (Dayananda Sagar CE)</div>
-                  <div style="margin-top:4px;"><strong>Sprint Goal:</strong> Autonomous obstacle avoidance & cloud telemetry</div>
+                <div style="background:var(--c-charcoal-dark); border-radius:10px; padding:14px 18px; font-size:0.82rem; border:1px solid rgba(221,213,205,0.15); display:flex; flex-direction:column; gap:6px;">
+                  <div><strong>Team Lead:</strong> Alex Rivera (Robotics Lab)</div>
+                  <div><strong>Delivered:</strong> Season 2026 Hackathon Championship</div>
+                  <div><strong>Tags:</strong> ROS2, Jetson AI, PyTorch, C++, WebSocket Telemetry</div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:4px;">
-                  <button onclick="navigate('explore')" class="btn btn-primary">Open Workspace &rarr;</button>
+                <div style="display:flex; gap:12px; margin-top:6px;">
+                  <button onclick="navigate('explore')" class="btn btn-primary">LAUNCH WORKSPACE &rarr;</button>
                   <button onclick="navigate('new-project')" class="btn btn-secondary">+ Submit Project</button>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- 4. INTERACTIVE METRICS & STATS COUNTER -->
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
-            <div class="stat-card">
-              <span class="stat-number">560+</span>
-              <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">BUILDER TEAMS</div>
-              <div class="text-muted text-xs">Collaborating in active workspaces</div>
-            </div>
-            <div class="stat-card">
-              <span class="stat-number">120+</span>
-              <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">PROJECTS SHIPPED</div>
-              <div class="text-muted text-xs">Hackathon & startup prototypes</div>
-            </div>
-            <div class="stat-card">
-              <span class="stat-number">2,400+</span>
-              <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">ACTIVE USERS</div>
-              <div class="text-muted text-xs">Engineers, students & designers</div>
-            </div>
-            <div class="stat-card">
-              <span class="stat-number">99.8%</span>
-              <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">MESH UPTIME</div>
-              <div class="text-muted text-xs">Real-time P2P database sync</div>
-            </div>
-          </div>
 
-          <!-- 5. WHY CHOOSE PRONNECT (ACCORDION & CORE PILLARS) -->
-          <div class="glass-card" style="padding:32px 24px;">
+          <!-- 4. VIDEO INTRO BANNER (SECTION #video) -->
+          <section id="video" style="position:relative; border-radius:20px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); background:#1a1818; text-align:center; padding:70px 20px;">
+            <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(34,32,32,0.85) 0%, rgba(34,32,32,0.92) 100%), url('https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat; filter:brightness(0.6); z-index:1;"></div>
+            
+            <div style="position:relative; z-index:2; max-width:640px; margin:0 auto; display:flex; flex-direction:column; align-items:center; gap:20px;">
+              <div onclick="openDemoVideoModal()" style="width:72px; height:72px; border-radius:50%; background:var(--c-burgundy); display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:var(--c-cream); cursor:pointer; box-shadow:0 0 35px rgba(125,64,71,0.9); transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <i class="fa fa-play" style="margin-left:4px;"></i>
+              </div>
+              <h2 style="font-size:clamp(1.8rem, 3.5vw, 2.4rem); font-weight:800; color:var(--c-cream); letter-spacing:0.04em;">
+                WATCH OUR PLATFORM INTRO
+              </h2>
+              <p class="text-muted text-sm" style="line-height:1.6;">
+                Discover how student developers use Pronnect to chat, organize Kanban cards, record audio voice notes, and ship projects with zero friction.
+              </p>
+            </div>
+          </section>
+
+
+          <!-- 5. ABOUT PRONNECT & SKILLS (SECTION #about) -->
+          <section id="about" class="glass-card" style="padding:40px 28px;">
             <div class="section-title">
-              <h2>WHY BUILDERS CHOOSE PRONNECT</h2>
+              <h2>ABOUT PRONNECT</h2>
               <div class="section-separator"></div>
-              <p class="text-muted text-xs">Engineered for speed, privacy, and zero deployment friction.</p>
+              <p class="text-muted text-xs">Architected for lightning speed, extreme simplicity, and open collaboration.</p>
             </div>
 
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:24px; align-items:start;">
-              <!-- Accordion List -->
+            <!-- Top Row: 3 Feature Blocks + Right Photo -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:32px; align-items:center; margin-bottom:48px;">
+              <div style="display:flex; flex-direction:column; gap:20px;">
+                <div style="display:flex; gap:16px; align-items:flex-start;">
+                  <div style="width:46px; height:46px; border-radius:10px; background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); display:flex; align-items:center; justify-content:center; color:var(--c-burgundy); font-size:1.3rem; flex-shrink:0;">
+                    <i class="fa fa-mug-hot"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size:1.05rem; font-weight:800; color:var(--c-cream); margin-bottom:4px;">RESPONSIVE & ZERO-NPM ARCHITECTURE</h4>
+                    <p class="text-muted text-xs" style="line-height:1.6;">Pure native Node.js and lightweight single-file delivery with zero complex package manager compilation headaches.</p>
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:16px; align-items:flex-start;">
+                  <div style="width:46px; height:46px; border-radius:10px; background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); display:flex; align-items:center; justify-content:center; color:var(--c-burgundy); font-size:1.3rem; flex-shrink:0;">
+                    <i class="fa fa-palette"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size:1.05rem; font-weight:800; color:var(--c-cream); margin-bottom:4px;">EASY TO CUSTOMIZE & SCALE</h4>
+                    <p class="text-muted text-xs" style="line-height:1.6;">Tailored color palettes, custom user avatars, profile badges, and scoped chat rooms for every hackathon domain.</p>
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:16px; align-items:flex-start;">
+                  <div style="width:46px; height:46px; border-radius:10px; background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); display:flex; align-items:center; justify-content:center; color:var(--c-burgundy); font-size:1.3rem; flex-shrink:0;">
+                    <i class="fa fa-headphones"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size:1.05rem; font-weight:800; color:var(--c-cream); margin-bottom:4px;">REAL-TIME 24/7 MESH SYNC</h4>
+                    <p class="text-muted text-xs" style="line-height:1.6;">Powered by Gun.js WebSocket relays and SSE so updates replicate instantly across different Wi-Fi networks.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style="border-radius:14px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1000&q=80" alt="About Pronnect Team" style="width:100%; height:260px; object-fit:cover;" />
+              </div>
+            </div>
+
+            <!-- Bottom Row: Tabs (Mission/Goal/Achievements) + Skill Progress Bars -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:36px; align-items:start; border-top:1px solid rgba(221,213,205,0.15); padding-top:36px;">
+              <!-- Left: Sub-tabs -->
+              <div>
+                <div style="display:flex; gap:8px; margin-bottom:16px;">
+                  <button id="about-tab-btn-mission" onclick="switchAboutTab('mission')" class="btn btn-sm" style="background:var(--c-burgundy); color:var(--c-cream);">OUR MISSION</button>
+                  <button id="about-tab-btn-goal" onclick="switchAboutTab('goal')" class="btn btn-sm" style="background:var(--c-charcoal-dark); color:var(--c-sand);">OUR GOAL</button>
+                  <button id="about-tab-btn-achievements" onclick="switchAboutTab('achievements')" class="btn btn-sm" style="background:var(--c-charcoal-dark); color:var(--c-sand);">ACHIEVEMENTS</button>
+                </div>
+
+                <div id="about-pane-mission" style="display:block;">
+                  <p class="text-muted text-xs" style="line-height:1.7; margin-bottom:12px;">
+                    Empower every student engineer and creator to discover teammates, share ideas securely, and ship functional MVPs without administrative friction.
+                  </p>
+                  <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem; color:var(--c-cream);">
+                    <div>✓ 100% Free and open collaboration tools</div>
+                    <div>✓ Scoped project rooms with private encryption</div>
+                    <div>✓ Consensus polling for democratic sprint decisions</div>
+                  </div>
+                </div>
+
+                <div id="about-pane-goal" style="display:none;">
+                  <p class="text-muted text-xs" style="line-height:1.7; margin-bottom:12px;">
+                    Bridge the gap between campus hackathons and production startups by providing enterprise-grade collaboration features in a zero-dependency lightweight package.
+                  </p>
+                  <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem; color:var(--c-cream);">
+                    <div>✓ Connect 10,000+ builders worldwide</div>
+                    <div>✓ Direct link sharing & resource hubs for each team</div>
+                  </div>
+                </div>
+
+                <div id="about-pane-achievements" style="display:none;">
+                  <p class="text-muted text-xs" style="line-height:1.7; margin-bottom:12px;">
+                    Pronnect squads have won national college hackathons, published open-source robotics drivers, and deployed production web applications.
+                  </p>
+                  <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem; color:var(--c-cream);">
+                    <div>✓ 125+ Hackathons & competitions won</div>
+                    <div>✓ Over 560 active workspaces created</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Skillbars -->
+              <div class="skillbar-container">
+                <div class="skillbar-item">
+                  <div class="skillbar-title">
+                    <span>FULL-STACK WEB & APPS</span>
+                    <span>92%</span>
+                  </div>
+                  <div class="skillbar-track">
+                    <div class="skillbar-fill" style="width:92%;"></div>
+                  </div>
+                </div>
+
+                <div class="skillbar-item">
+                  <div class="skillbar-title">
+                    <span>AI RESEARCH & PYTORCH</span>
+                    <span>86%</span>
+                  </div>
+                  <div class="skillbar-track">
+                    <div class="skillbar-fill" style="width:86%;"></div>
+                  </div>
+                </div>
+
+                <div class="skillbar-item">
+                  <div class="skillbar-title">
+                    <span>ROBOTICS & EMBEDDED ROS2</span>
+                    <span>79%</span>
+                  </div>
+                  <div class="skillbar-track">
+                    <div class="skillbar-fill" style="width:79%;"></div>
+                  </div>
+                </div>
+
+                <div class="skillbar-item">
+                  <div class="skillbar-title">
+                    <span>UI/UX PRODUCT DESIGN</span>
+                    <span>94%</span>
+                  </div>
+                  <div class="skillbar-track">
+                    <div class="skillbar-fill" style="width:94%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+          <!-- 6. STATISTICS COUNTER (SECTION #counter) -->
+          <section id="counter" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:18px;">
+            <div class="stat-card">
+              <i class="fa fa-heart" style="font-size:1.6rem; color:var(--c-burgundy);"></i>
+              <span class="stat-number">561</span>
+              <div style="font-weight:800; font-size:0.85rem; color:var(--c-cream);">CREATIVE DESIGNS</div>
+              <div class="text-muted text-xs">Workspaces & Builds</div>
+            </div>
+            <div class="stat-card">
+              <i class="fa fa-trophy" style="font-size:1.6rem; color:var(--c-burgundy);"></i>
+              <span class="stat-number">125</span>
+              <div style="font-weight:800; font-size:0.85rem; color:var(--c-cream);">AWARDS WON</div>
+              <div class="text-muted text-xs">Hackathon Championships</div>
+            </div>
+            <div class="stat-card">
+              <i class="fa fa-users" style="font-size:1.6rem; color:var(--c-burgundy);"></i>
+              <span class="stat-number">2,360</span>
+              <div style="font-weight:800; font-size:0.85rem; color:var(--c-cream);">HAPPY BUILDERS</div>
+              <div class="text-muted text-xs">Engineers & Designers</div>
+            </div>
+            <div class="stat-card">
+              <i class="fa fa-mug-hot" style="font-size:1.6rem; color:var(--c-burgundy);"></i>
+              <span class="stat-number">3,650</span>
+              <div style="font-weight:800; font-size:0.85rem; color:var(--c-cream);">CUPS OF COFFEE</div>
+              <div class="text-muted text-xs">Hackathon Sprints Shipped</div>
+            </div>
+          </section>
+
+
+          <!-- 7. OTHER SERVICES / CAPABILITIES (SECTION #othersservice) -->
+          <section id="othersservice" class="glass-card" style="padding:40px 28px;">
+            <div class="section-title">
+              <h2>SPECIALTY CAPABILITIES</h2>
+              <div class="section-separator"></div>
+              <p class="text-muted text-xs">End-to-end tooling designed for speed and developer joy.</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px;">
+              <div class="bento-card" style="display:flex; gap:16px; align-items:flex-start;">
+                <div style="width:42px; height:42px; border-radius:10px; background:var(--c-charcoal); border:1px solid rgba(221,213,205,0.2); display:flex; align-items:center; justify-content:center; color:var(--c-burgundy); font-size:1.2rem; flex-shrink:0;">
+                  <i class="fa fa-clock"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:1rem; font-weight:800; color:var(--c-cream); margin-bottom:4px;">CREATIVE DESIGN</h4>
+                  <p class="text-muted text-xs" style="line-height:1.6;">Tailored UI tokens and aesthetic palettes built from ground up.</p>
+                </div>
+              </div>
+
+              <div class="bento-card" style="display:flex; gap:16px; align-items:flex-start;">
+                <div style="width:42px; height:42px; border-radius:10px; background:var(--c-charcoal); border:1px solid rgba(221,213,205,0.2); display:flex; align-items:center; justify-content:center; color:var(--c-burgundy); font-size:1.2rem; flex-shrink:0;">
+                  <i class="fa fa-code"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:1rem; font-weight:800; color:var(--c-cream); margin-bottom:4px;">WEB DEVELOPMENT</h4>
+                  <p class="text-muted text-xs" style="line-height:1.6;">Single-bundle JavaScript and native HTTP servers with 0 NPM issues.</p>
+                </div>
+              </div>
+
+              <div class="bento-card" style="display:flex; gap:16px; align-items:flex-start;">
+                <div style="width:42px; height:42px; border-radius:10px; background:var(--c-charcoal); border:1px solid rgba(221,213,205,0.2); display:flex; align-items:center; justify-content:center; color:var(--c-burgundy); font-size:1.2rem; flex-shrink:0;">
+                  <i class="fa fa-video"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:1rem; font-weight:800; color:var(--c-cream); margin-bottom:4px;">CODE & MEDIA COLLAB</h4>
+                  <p class="text-muted text-xs" style="line-height:1.6;">Share voice memos, image assets, and snippets right in room threads.</p>
+                </div>
+              </div>
+
+              <div class="bento-card" style="display:flex; gap:16px; align-items:flex-start;">
+                <div style="width:42px; height:42px; border-radius:10px; background:var(--c-charcoal); border:1px solid rgba(221,213,205,0.2); display:flex; align-items:center; justify-content:center; color:var(--c-burgundy); font-size:1.2rem; flex-shrink:0;">
+                  <i class="fa fa-bullhorn"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:1rem; font-weight:800; color:var(--c-cream); margin-bottom:4px;">CONSENSUS POLLS</h4>
+                  <p class="text-muted text-xs" style="line-height:1.6;">Run democratic team voting on sprint tickets and design choices.</p>
+                </div>
+              </div>
+
+              <div class="bento-card" style="display:flex; gap:16px; align-items:flex-start;">
+                <div style="width:42px; height:42px; border-radius:10px; background:var(--c-charcoal); border:1px solid rgba(221,213,205,0.2); display:flex; align-items:center; justify-content:center; color:var(--c-burgundy); font-size:1.2rem; flex-shrink:0;">
+                  <i class="fa fa-camera"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:1rem; font-weight:800; color:var(--c-cream); margin-bottom:4px;">RESOURCES & ASSETS HUB</h4>
+                  <p class="text-muted text-xs" style="line-height:1.6;">Every image, audio note, and file shared in chat auto-syncs to media.</p>
+                </div>
+              </div>
+
+              <div class="bento-card" style="display:flex; gap:16px; align-items:flex-start;">
+                <div style="width:42px; height:42px; border-radius:10px; background:var(--c-charcoal); border:1px solid rgba(221,213,205,0.2); display:flex; align-items:center; justify-content:center; color:var(--c-burgundy); font-size:1.2rem; flex-shrink:0;">
+                  <i class="fa fa-shield-halved"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:1rem; font-weight:800; color:var(--c-cream); margin-bottom:4px;">STEALTH ENCRYPTION</h4>
+                  <p class="text-muted text-xs" style="line-height:1.6;">Lock private workspaces with passwords and leader approval gates.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+          <!-- 8. TEAM BUILDERS SECTION (SECTION #team) -->
+          <section id="team" class="glass-card" style="padding:40px 28px;">
+            <div class="section-title">
+              <h2>OUR LEAD BUILDERS</h2>
+              <div class="section-separator"></div>
+              <p class="text-muted text-xs">Meet some of the engineers and designers powering our active communities.</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:20px;">
+              <div class="team-card">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80" alt="Omkar Gurav" class="team-img" />
+                <div class="team-info">
+                  <div class="team-name">OMKAR GURAV</div>
+                  <div class="team-role">FOUNDER & LEAD ARCHITECT</div>
+                  <div class="team-socials">
+                    <a href="https://github.com" target="_blank"><i class="fa-brands fa-github"></i></a>
+                    <a href="https://twitter.com" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="team-card">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80" alt="Alex Rivera" class="team-img" />
+                <div class="team-info">
+                  <div class="team-name">ALEX RIVERA</div>
+                  <div class="team-role">ROBOTICS & HARDWARE LEAD</div>
+                  <div class="team-socials">
+                    <a href="https://github.com" target="_blank"><i class="fa-brands fa-github"></i></a>
+                    <a href="https://twitter.com" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="team-card">
+                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=500&q=80" alt="Sarah Chen" class="team-img" />
+                <div class="team-info">
+                  <div class="team-name">SARAH CHEN</div>
+                  <div class="team-role">AI RESEARCH & VISION</div>
+                  <div class="team-socials">
+                    <a href="https://github.com" target="_blank"><i class="fa-brands fa-github"></i></a>
+                    <a href="https://twitter.com" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="team-card">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&q=80" alt="Elena Rostova" class="team-img" />
+                <div class="team-info">
+                  <div class="team-name">ELENA ROSTOVA</div>
+                  <div class="team-role">UI/UX PRODUCT DESIGN</div>
+                  <div class="team-socials">
+                    <a href="https://github.com" target="_blank"><i class="fa-brands fa-github"></i></a>
+                    <a href="https://twitter.com" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+          <!-- 9. WHY CHOOSE PRONNECT ACCORDION (SECTION #choose) -->
+          <section id="choose" class="glass-card" style="padding:40px 28px;">
+            <div class="section-title">
+              <h2>WHY CHOOSE US</h2>
+              <div class="section-separator"></div>
+              <p class="text-muted text-xs">Built from first principles for hackathon builders and student teams.</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:32px; align-items:start;">
+              <!-- Accordion -->
               <div style="display:flex; flex-direction:column; gap:10px;">
                 <div>
                   <div class="accordion-header" onclick="toggleAccordionItem(1)">
-                    <span>⚡ 1. Zero-Dependency Standalone Speed</span>
-                    <span id="accordion-icon-1" style="font-size:1.2rem; font-weight:bold;">−</span>
+                    <span><i class="fa fa-image" style="color:var(--c-burgundy); margin-right:8px;"></i> GREAT RESPONSIVE DESIGN</span>
+                    <span id="accordion-icon-1" style="font-size:1.2rem;">−</span>
                   </div>
                   <div id="accordion-body-1" class="accordion-body active">
-                    No heavy bundle bloat or complex build chains. Pronnect runs on pure native Node.js and lightweight single-bundle frontend with instant page transitions.
+                    A sleek dark glassmorphism interface styled exclusively with your exact curated color palette (#F1ECE6, #DDD5CD, #7D4047, #2E2E2E).
                   </div>
                 </div>
 
                 <div>
                   <div class="accordion-header" onclick="toggleAccordionItem(2)">
-                    <span>🔒 2. Private Encrypted Workspaces & Leader Controls</span>
-                    <span id="accordion-icon-2" style="font-size:1.2rem; font-weight:bold;">+</span>
+                    <span><i class="fa fa-bolt" style="color:var(--c-burgundy); margin-right:8px;"></i> ZERO-NPM DEPENDENCY ARCHITECTURE</span>
+                    <span id="accordion-icon-2" style="font-size:1.2rem;">+</span>
                   </div>
                   <div id="accordion-body-2" class="accordion-body">
-                    Lock stealth projects with custom passwords or require manual join approval from the project leader. Leaders maintain full control over member management.
+                    Runs on pure native Node.js HTTP servers with zero package bloat or broken build chains.
                   </div>
                 </div>
 
                 <div>
                   <div class="accordion-header" onclick="toggleAccordionItem(3)">
-                    <span>🌐 3. Global Mesh Sync Across Networks</span>
-                    <span id="accordion-icon-3" style="font-size:1.2rem; font-weight:bold;">+</span>
+                    <span><i class="fa fa-display" style="color:var(--c-burgundy); margin-right:8px;"></i> RETINA READY & HIGH FIDELITY</span>
+                    <span id="accordion-icon-3" style="font-size:1.2rem;">+</span>
                   </div>
                   <div id="accordion-body-3" class="accordion-body">
-                    Built on Gun.js WebSocket mesh relays and SSE channels. Collaborators see real-time chat, Kanban tasks, and polls without needing to be on the same local Wi-Fi.
+                    Crisp typography with Montserrat and Raleway fonts and Font Awesome vector icons for high DPI screens.
                   </div>
                 </div>
 
                 <div>
                   <div class="accordion-header" onclick="toggleAccordionItem(4)">
-                    <span>🎙️ 4. Unified Voice Notes, Media & Consensus Polls</span>
-                    <span id="accordion-icon-4" style="font-size:1.2rem; font-weight:bold;">+</span>
+                    <span><i class="fa fa-google" style="color:var(--c-burgundy); margin-right:8px;"></i> 1-CLICK FAST GOOGLE LOGIN</span>
+                    <span id="accordion-icon-4" style="font-size:1.2rem;">+</span>
                   </div>
                   <div id="accordion-body-4" class="accordion-body">
-                    Send inline microphone voice memos, attach code snippets and design files with auto-sync to project media, and vote on team polls with live percentage bars.
+                    Skip passwords and OTP delays entirely with instant friction-free Google OAuth and demo profile switching.
+                  </div>
+                </div>
+
+                <div>
+                  <div class="accordion-header" onclick="toggleAccordionItem(5)">
+                    <span><i class="fa fa-network-wired" style="color:var(--c-burgundy); margin-right:8px;"></i> REAL-TIME P2P MESH SYNCHRONIZATION</span>
+                    <span id="accordion-icon-5" style="font-size:1.2rem;">+</span>
+                  </div>
+                  <div id="accordion-body-5" class="accordion-body">
+                    Distributed Gun.js mesh relays synchronize chats, Kanban moves, and polls across devices on different networks seamlessly.
                   </div>
                 </div>
               </div>
 
-              <!-- Visual Pillar Card -->
-              <div class="bento-card" style="background:var(--c-charcoal-dark); display:flex; flex-direction:column; gap:16px;">
-                <div style="font-size:2.2rem;">🚀</div>
-                <h3 style="font-size:1.2rem; font-weight:700; color:var(--c-cream);">1-Click Fast Google Authentication</h3>
-                <p class="text-muted text-xs" style="line-height:1.6;">
-                  Skip manual forms and password recovery. Sign in instantly using your Google account to access all your projects and team chat rooms.
-                </p>
-                <button onclick="${currentUser ? "navigate('explore')" : "triggerGoogleSignIn()"}" class="btn btn-primary" style="margin-top:auto;">
-                  ${currentUser ? "Launch Workspace &rarr;" : "Try 1-Click Fast Login &rarr;"}
-                </button>
+              <!-- Right Image Card -->
+              <div style="border-radius:14px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" alt="Collaboration Setup" style="width:100%; height:320px; object-fit:cover;" />
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- 6. LATEST PROJECTS GALLERY & CATEGORY FILTERS -->
-          <div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+
+          <!-- 10. PORTFOLIO & LATEST PROJECTS (SECTION #portfolio) -->
+          <section id="portfolio">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:24px;">
               <div>
-                <h2 style="font-size:1.8rem; font-weight:800; color:var(--c-cream);">LATEST ACTIVE WORKSPACES</h2>
-                <p class="text-muted text-xs" style="margin-top:4px;">Browse or request to join live hackathon builds.</p>
+                <h2 style="font-size:1.8rem; font-weight:800; color:var(--c-cream);">LATEST PROJECTS</h2>
+                <div style="width:40px; height:2px; background:var(--c-burgundy); margin-top:6px;"></div>
               </div>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                <button id="filter-btn-all" onclick="filterLandingPortfolio('all')" class="filter-tab-btn active">Show All</button>
-                <button id="filter-btn-robotics" onclick="filterLandingPortfolio('robotics')" class="filter-tab-btn">Robotics & AI</button>
-                <button id="filter-btn-fullstack" onclick="filterLandingPortfolio('fullstack')" class="filter-tab-btn">Full-Stack & Web</button>
-                <button id="filter-btn-ui" onclick="filterLandingPortfolio('ui')" class="filter-tab-btn">UI/UX Design</button>
+                <button id="filter-btn-all" onclick="filterLandingPortfolio('all')" class="filter-tab-btn active">SHOW ALL</button>
+                <button id="filter-btn-web" onclick="filterLandingPortfolio('web')" class="filter-tab-btn">WEB</button>
+                <button id="filter-btn-mobile" onclick="filterLandingPortfolio('mobile')" class="filter-tab-btn">MOBILE</button>
+                <button id="filter-btn-robotics" onclick="filterLandingPortfolio('robotics')" class="filter-tab-btn">AI & HARDWARE</button>
+                <button id="filter-btn-design" onclick="filterLandingPortfolio('design')" class="filter-tab-btn">GRAPHIC DESIGN</button>
               </div>
             </div>
 
-            <div id="landing-portfolio-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;"></div>
-          </div>
+            <div id="landing-portfolio-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px;"></div>
+          </section>
 
-          <!-- 7. TESTIMONIALS & BUILDER STORIES -->
-          <div class="glass-card" style="padding:32px 24px; text-align:center;">
+
+          <!-- 11. TESTIMONIAL SECTION (SECTION #testimonial) -->
+          <section id="testimonial" class="glass-card" style="padding:48px 24px; text-align:center; position:relative;">
+            <div style="font-size:3rem; color:var(--c-burgundy); line-height:1; font-family:Georgia, serif; margin-bottom:12px;">❝</div>
+            <div style="max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+              <p style="font-size:1.15rem; font-style:italic; line-height:1.7; color:var(--c-cream);">
+                "Pronnect solved our hackathon team's biggest headache: fragmented tools. With instant chat, voice notes, consensus polling on architecture choices, and private workspace locking, we took 1st place in the AI Systems division."
+              </p>
+              <div>
+                <div style="font-weight:800; font-family:'Montserrat',sans-serif; color:var(--c-cream); font-size:0.95rem;">JANE GALADRIEL</div>
+                <div class="text-muted text-xs" style="margin-top:2px;">CEO TECHINVENT / HACKATHON WINNER</div>
+              </div>
+            </div>
+          </section>
+
+
+          <!-- 12. CLIENT / SPONSOR LOGOS (SECTION #clogo) -->
+          <section id="clogo" style="display:flex; justify-content:center; align-items:center; gap:32px; flex-wrap:wrap; opacity:0.75; padding:10px 0;">
+            <div style="font-weight:800; font-family:'Montserrat',sans-serif; font-size:1.1rem; color:var(--c-sand); letter-spacing:0.1em;">STANFORD AI</div>
+            <div style="font-weight:800; font-family:'Montserrat',sans-serif; font-size:1.1rem; color:var(--c-sand); letter-spacing:0.1em;">MIT MEDIA LAB</div>
+            <div style="font-weight:800; font-family:'Montserrat',sans-serif; font-size:1.1rem; color:var(--c-sand); letter-spacing:0.1em;">DAYANANDA SAGAR</div>
+            <div style="font-weight:800; font-family:'Montserrat',sans-serif; font-size:1.1rem; color:var(--c-sand); letter-spacing:0.1em;">GITHUB CAMPUS</div>
+            <div style="font-weight:800; font-family:'Montserrat',sans-serif; font-size:1.1rem; color:var(--c-sand); letter-spacing:0.1em;">GOOGLE CLOUD</div>
+          </section>
+
+
+          <!-- 13. CONTACT & LEAVE MESSAGE (SECTION #contact) -->
+          <section id="contact" class="glass-card" style="padding:40px 28px;">
             <div class="section-title">
-              <h2>BUILDER TESTIMONIALS</h2>
+              <h2>CONTACT US</h2>
               <div class="section-separator"></div>
+              <p class="text-muted text-xs">Have questions, partnership inquiries, or hackathon collaboration ideas? Reach out!</p>
             </div>
 
-            <div style="max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:16px;">
-              <div style="font-size:1.1rem; font-style:italic; line-height:1.6; color:var(--c-cream);">
-                "Pronnect transformed how our hackathon squad collaborated. From real-time ROS2 telemetry discussions to instant consensus polling on architecture decisions, we shipped our drone prototype 3x faster."
-              </div>
-              <div style="font-size:0.85rem; color:var(--c-sand);">
-                <strong>Sarah Chen</strong> — AI Research Lead, Autonomous Systems Lab
-              </div>
-            </div>
-          </div>
-
-          <!-- 8. CONTACT & FEEDBACK MESSAGE FORM -->
-          <div class="glass-card" style="padding:32px 24px;">
-            <div class="section-title">
-              <h2>GET IN TOUCH & SHARE FEEDBACK</h2>
-              <div class="section-separator"></div>
-              <p class="text-muted text-xs">Have questions or want to partner your college hackathon? Reach out below.</p>
-            </div>
-
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px;">
-              <div style="display:flex; flex-direction:column; gap:16px;">
-                <div style="display:flex; gap:12px; align-items:center;">
-                  <span style="font-size:1.5rem;">🏢</span>
-                  <div>
-                    <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">Campus & Community Hub</div>
-                    <div class="text-muted text-xs">Open Collaboration Platform for Student Builders</div>
-                  </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:32px;">
+              <!-- Left Info Column -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="bento-card" style="padding:20px; text-align:center;">
+                  <i class="fa fa-map-marker-alt" style="font-size:1.5rem; color:var(--c-burgundy); margin-bottom:8px;"></i>
+                  <div style="font-weight:800; font-size:0.8rem; color:var(--c-cream);">VISIT US</div>
+                  <div class="text-muted text-xs" style="margin-top:4px;">Innovation Campus, Victoria ST</div>
                 </div>
-                <div style="display:flex; gap:12px; align-items:center;">
-                  <span style="font-size:1.5rem;">📩</span>
-                  <div>
-                    <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">Support Email</div>
-                    <div class="text-muted text-xs">support@pronnect.app</div>
-                  </div>
+
+                <div class="bento-card" style="padding:20px; text-align:center;">
+                  <i class="fa fa-envelope" style="font-size:1.5rem; color:var(--c-burgundy); margin-bottom:8px;"></i>
+                  <div style="font-weight:800; font-size:0.8rem; color:var(--c-cream);">MAIL US</div>
+                  <div class="text-muted text-xs" style="margin-top:4px;">support@pronnect.app</div>
                 </div>
-                <div style="display:flex; gap:12px; align-items:center;">
-                  <span style="font-size:1.5rem;">🌐</span>
-                  <div>
-                    <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">Real-Time P2P Mesh</div>
-                    <div class="text-muted text-xs">Connected via Global Relays 24/7</div>
-                  </div>
+
+                <div class="bento-card" style="padding:20px; text-align:center;">
+                  <i class="fa fa-phone" style="font-size:1.5rem; color:var(--c-burgundy); margin-bottom:8px;"></i>
+                  <div style="font-weight:800; font-size:0.8rem; color:var(--c-cream);">CALL US</div>
+                  <div class="text-muted text-xs" style="margin-top:4px;">+(100) 123 4567 890</div>
+                </div>
+
+                <div class="bento-card" style="padding:20px; text-align:center;">
+                  <i class="fa fa-clock" style="font-size:1.5rem; color:var(--c-burgundy); margin-bottom:8px;"></i>
+                  <div style="font-weight:800; font-size:0.8rem; color:var(--c-cream);">WORK HOUR</div>
+                  <div class="text-muted text-xs" style="margin-top:4px;">Mon - Sat: 08 Am - 17 Pm</div>
                 </div>
               </div>
 
+              <!-- Right Message Form -->
               <form id="landing-contact-form" onsubmit="handleContactSubmit(event)" style="display:flex; flex-direction:column; gap:12px;">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                  <input placeholder="Your Name" required style="background:var(--c-charcoal-dark);" />
-                  <input type="email" placeholder="Your Email" required style="background:var(--c-charcoal-dark);" />
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                  <input placeholder="First Name" required />
+                  <input placeholder="Last Name" required />
                 </div>
-                <input placeholder="Subject / Project Topic" required style="background:var(--c-charcoal-dark);" />
-                <textarea rows="3" placeholder="Message or Collaboration Inquiry..." required style="background:var(--c-charcoal-dark);"></textarea>
-                <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send Message &rarr;</button>
+                <input type="email" placeholder="Your Email Address" required />
+                <input placeholder="Subject" required />
+                <textarea rows="3" placeholder="Your Message..." required></textarea>
+                <button type="submit" class="btn btn-primary" style="align-self:flex-start;">SEND MESSAGE &rarr;</button>
               </form>
             </div>
-          </div>
+          </section>
 
-          <!-- 9. MULTIPURPOSE FOOTER WITH SITEMAP & NEWSLETTER -->
-          <footer style="border-top:1px solid rgba(221,213,205,0.2); padding-top:32px; display:flex; flex-direction:column; gap:28px;">
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:24px;">
+
+          <!-- 14. GOOGLE MAP BANNER (SECTION #maps) -->
+          <section id="maps" style="position:relative; border-radius:14px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); background:#1e1c1c; text-align:center; padding:36px 20px;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+              <i class="fa fa-map-location-dot" style="font-size:1.4rem; color:var(--c-burgundy);"></i>
+              <span style="font-weight:800; font-family:'Montserrat',sans-serif; color:var(--c-cream); font-size:1rem; letter-spacing:0.04em;">FIND US ON CAMPUS & GOOGLE MAPS</span>
+            </div>
+            <p class="text-muted text-xs" style="margin-top:6px;">Decentralized Student Hub & Global Peer Relays Active 24/7</p>
+          </section>
+
+
+          <!-- 15. LOGIC MULTIPURPOSE FOOTER (SECTION #footer) -->
+          <footer id="footer" style="border-top:1px solid rgba(221,213,205,0.2); padding-top:40px; display:flex; flex-direction:column; gap:36px;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:32px;">
+              <!-- Brand Description -->
               <div>
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-                  <div style="width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg, var(--c-cream), var(--c-burgundy)); display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-charcoal); font-size:0.9rem;">P</div>
-                  <span class="gradient-text" style="font-size:1.2rem; font-weight:800;">Pronnect</span>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                  <div style="width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg, var(--c-cream), var(--c-burgundy)); display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-charcoal); font-size:0.95rem;">P</div>
+                  <span class="gradient-text" style="font-size:1.3rem; font-family:'Montserrat', sans-serif;">Pronnect</span>
                 </div>
-                <p class="text-muted text-xs" style="line-height:1.6;">
-                  Zero-dependency collaboration platform built for student engineers and fast hackathon squads.
+                <p class="text-muted text-xs" style="line-height:1.7;">
+                  Logic-styled multipurpose collaboration workspace built for student hackers, hardware engineers, and designers.
                 </p>
               </div>
 
+              <!-- Sitemap -->
               <div>
-                <div style="font-weight:700; font-size:0.85rem; color:var(--c-cream); margin-bottom:10px;">NAVIGATION</div>
-                <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem;">
-                  <a href="javascript:void(0)" onclick="navigate('home')" style="color:var(--c-sand); text-decoration:none;">Home</a>
-                  <a href="javascript:void(0)" onclick="navigate('explore')" style="color:var(--c-sand); text-decoration:none;">Explore Projects</a>
-                  <a href="javascript:void(0)" onclick="navigate('global-chat')" style="color:var(--c-sand); text-decoration:none;">Community Chat</a>
-                  <a href="javascript:void(0)" onclick="navigate('new-project')" style="color:var(--c-sand); text-decoration:none;">+ Create Project</a>
+                <div style="font-weight:800; font-family:'Montserrat',sans-serif; font-size:0.85rem; color:var(--c-cream); margin-bottom:12px;">SITEMAP</div>
+                <div style="display:flex; flex-direction:column; gap:8px; font-size:0.8rem;">
+                  <a href="#service" onclick="scrollToSection('service')" style="color:var(--c-sand); text-decoration:none;">Services</a>
+                  <a href="#about" onclick="scrollToSection('about')" style="color:var(--c-sand); text-decoration:none;">About Us</a>
+                  <a href="#team" onclick="scrollToSection('team')" style="color:var(--c-sand); text-decoration:none;">Our Team</a>
+                  <a href="#portfolio" onclick="scrollToSection('portfolio')" style="color:var(--c-sand); text-decoration:none;">Portfolio</a>
                 </div>
               </div>
 
+              <!-- Archives -->
               <div>
-                <div style="font-weight:700; font-size:0.85rem; color:var(--c-cream); margin-bottom:10px;">FEATURES</div>
-                <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem; color:var(--c-sand);">
-                  <div>💬 Live Chat & Voice Notes</div>
-                  <div>📋 Drag-Free Kanban Board</div>
-                  <div>📊 Consensus Team Polls</div>
-                  <div>🔒 Encrypted Stealth Mode</div>
+                <div style="font-weight:800; font-family:'Montserrat',sans-serif; font-size:0.85rem; color:var(--c-cream); margin-bottom:12px;">ARCHIVES</div>
+                <div style="display:flex; flex-direction:column; gap:8px; font-size:0.8rem; color:var(--c-sand);">
+                  <div>Season 2026 Hackathons</div>
+                  <div>Autonomous Robotics Sprints</div>
+                  <div>AI Research Whitepapers</div>
                 </div>
               </div>
 
+              <!-- Newsletter -->
               <div>
-                <div style="font-weight:700; font-size:0.85rem; color:var(--c-cream); margin-bottom:10px;">NEWSLETTER</div>
-                <p class="text-muted text-xs" style="margin-bottom:8px;">Get hackathon updates and project invites.</p>
+                <div style="font-weight:800; font-family:'Montserrat',sans-serif; font-size:0.85rem; color:var(--c-cream); margin-bottom:12px;">NEWSLETTER</div>
+                <p class="text-muted text-xs" style="margin-bottom:10px;">Subscribe for new project drops and campus hackathon dates.</p>
                 <form onsubmit="handleNewsletterSubmit(event)" style="display:flex; gap:6px;">
-                  <input id="newsletter-email" type="email" placeholder="your.email@edu" required style="font-size:0.8rem; padding:8px 10px; background:var(--c-charcoal-dark);" />
-                  <button type="submit" class="btn btn-primary btn-sm">Join</button>
+                  <input id="newsletter-email" type="email" placeholder="your.email@edu" required style="font-size:0.8rem; padding:10px;" />
+                  <button type="submit" class="btn btn-primary btn-sm">JOIN</button>
                 </form>
               </div>
             </div>
 
-            <div style="border-top:1px solid rgba(221,213,205,0.1); padding-top:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:0.75rem; color:var(--c-sand);">
-              <div>© 2026 Pronnect Collaboration Hub. Built for builders with zero bloat.</div>
-              <div style="display:flex; gap:14px;">
-                <a href="javascript:void(0)" onclick="showCommunityGuidelinesModal()" style="color:var(--c-sand); text-decoration:underline;">Guidelines</a>
-                <a href="javascript:void(0)" onclick="triggerGoogleSignIn()" style="color:var(--c-cream); font-weight:bold;">⚡ Fast Login</a>
+            <!-- Bottom Copyright & Social Icons -->
+            <div style="border-top:1px solid rgba(221,213,205,0.1); padding-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; font-size:0.75rem; color:var(--c-sand);">
+              <div>© 2026 Pronnect Collaboration Hub. All rights reserved.</div>
+              <div style="display:flex; gap:12px; font-size:1rem;">
+                <a href="https://github.com" target="_blank" style="color:var(--c-sand);"><i class="fa-brands fa-github"></i></a>
+                <a href="https://twitter.com" target="_blank" style="color:var(--c-sand);"><i class="fa-brands fa-x-twitter"></i></a>
+                <a href="https://linkedin.com" target="_blank" style="color:var(--c-sand);"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="javascript:void(0)" onclick="showCommunityGuidelinesModal()" style="color:var(--c-sand); text-decoration:underline; font-size:0.75rem; margin-left:8px;">Guidelines</a>
               </div>
             </div>
           </footer>

@@ -1,54 +1,28 @@
 {
   "users": [
     {
-      "id": "u_1d7e5da7",
+      "id": "u_1787495434275_9b0e",
       "name": "Omkar Gurav",
       "email": "omkargurav3217@gmail.com",
-      "salt": "48e9f27b9d9de32331b3cbb899ee3833",
-      "passwordHash": "be60f8f69fb84e707c37bb85360ed187f0f5115cc0a4c4c5aa2d9aa6dd24266fd16d32f3322b894080402e999aca161b95005e99da43e466380af8c57df9f35c",
-      "school": "Dayananda Sagar College of Engineering",
-      "bio": "",
-      "skills": [],
-      "githubUrl": "",
-      "createdAt": "2026-08-21T12:58:20.238Z"
+      "school": "v",
+      "password": "123456",
+      "headline": "Builder & Student at v",
+      "bio": "Collaborating and building innovative projects with the Pronnect community.",
+      "skills": [
+        "Full-Stack",
+        "AI/ML"
+      ],
+      "picture": "https://api.dicebear.com/7.x/bottts/svg?seed=Omkar%20Gurav",
+      "createdAt": "2026-08-23T14:30:34.275Z"
     }
   ],
-  "projects": [
-    {
-      "id": "p_a8f3d2bd",
-      "name": "HOI",
-      "description": "ho",
-      "visibility": "PUBLIC",
-      "tags": [],
-      "leaderId": "u_1d7e5da7",
-      "encryptedSettings": "{\"ciphertext\":\"1fE1x4iEj/XEKhtzlL3UblyJNzi31xGtiIzO32B/heKEQYsYaw==\",\"iv\":\"UYpVPEcgoeSEaTbu\",\"tag\":\"J/FTlCKhKCIzd7dimxgz3g==\"}",
-      "inviteCode": "6CDB5880",
-      "createdAt": "2026-08-21T12:58:45.612Z"
-    }
-  ],
-  "members": [
-    {
-      "id": "m_17745412",
-      "projectId": "p_a8f3d2bd",
-      "userId": "u_1d7e5da7",
-      "role": "LEADER",
-      "joinedAt": "2026-08-21T12:58:45.612Z"
-    }
-  ],
+  "projects": [],
+  "members": [],
   "joinRequests": [],
   "tasks": [],
   "polls": [],
   "pollVotes": [],
-  "messages": [
-    {
-      "id": "msg_f3162866",
-      "room": "GLOBAL",
-      "projectId": null,
-      "senderId": "u_1d7e5da7",
-      "content": "hi",
-      "createdAt": "2026-08-21T12:58:28.562Z"
-    }
-  ],
+  "messages": [],
   "media": [],
   "notifications": [],
   "sessions": {}
