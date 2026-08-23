@@ -201,8 +201,8 @@
 
   <script>
     // --- MULTI-PEER REAL-TIME GLOBAL MESH (P2P + WEBSOCKET RELAYS + LOCALSTORAGE) ---
-    const LOCAL_CACHE_KEY = "pronnect_session_v4";
-    const MESH_CHANNEL_NAME = "pronnect_mesh_sync_v4";
+    const LOCAL_CACHE_KEY = "pronnect_fresh_start_2026_clean_v1";
+    const MESH_CHANNEL_NAME = "pronnect_mesh_fresh_2026_clean_v1";
 
     let store = {
       users: [],
@@ -223,11 +223,11 @@
     let activeProjectId = null;
     let activeProjectTab = 'chat';
     let typingTimer = null;
-    let pendingAuth = null; // { type: 'signup' | 'login', data: {...}, otp: '123456', expiresAt: timestamp }
-    let otpResendTimer = null;
+    let pendingAuth = null;
+    let unlockedPrivateProjects = {}; // Session store for unlocked private projects
     let domainTags = ["AI/ML", "Web Dev", "Mobile", "Embedded Systems", "Robotics", "IoT", "Cybersecurity", "Data Science", "Research"];
 
-    // Restore cached session
+    // Restore cached session if valid
     try {
       const cached = localStorage.getItem(LOCAL_CACHE_KEY);
       if (cached) {
@@ -1225,75 +1225,10 @@
     }
 
     function handleProjectCardClick(projId) {
-      const p = store.projects.find(x => x.id === projId);
-      if (!p) return;
-
-      const isLeader = currentUser && p.leaderId === currentUser.id;
-      const isMember = isLeader || (currentUser && store.members.some(m => m.projectId === p.id && m.userId === currentUser.id));
-
-      if (p.visibility === 'PRIVATE' && !isMember) {
-        promptUnlockPrivateProject(projId);
-      } else {
-        navigate('project', projId);
-      }
+      promptJoinOrEnterProject(projId);
     }
 
-    // In-App Modal for Private Project Unlock by Search / Name
-    function promptJoinPrivateProject() {
-      const privateProjects = store.projects.filter(p => p.visibility === 'PRIVATE');
-      openModal("🔑 Unlock Private Project", `
-        <form onsubmit="handleJoinPrivateProjectSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
-          <div>
-            <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Select or Type Private Project Name</label>
-            <input id="modal-priv-proj-name" list="priv-proj-list" required placeholder="e.g. Stealth AI Engine" autofocus />
-            <datalist id="priv-proj-list">
-              ${privateProjects.map(p => `<option value="${escapeHtml(p.name)}"></option>`).join('')}
-            </datalist>
-          </div>
-          <div>
-            <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Project Password</label>
-            <div class="input-with-btn">
-              <input id="modal-priv-proj-pass" type="password" required placeholder="Enter password" />
-              <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('modal-priv-proj-pass', this)">👁️</button>
-            </div>
-          </div>
-          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
-            <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
-            <button type="submit" class="btn btn-primary" style="flex:1;">Unlock & Access &rarr;</button>
-          </div>
-        </form>
-      `);
-    }
-
-    function handleJoinPrivateProjectSubmit(e) {
-      e.preventDefault();
-      const projName = document.getElementById('modal-priv-proj-name').value.trim();
-      const pass = document.getElementById('modal-priv-proj-pass').value.trim();
-      const p = store.projects.find(x => x.name.toLowerCase() === projName.toLowerCase());
-
-      if (!p) {
-        showToast("Private project not found. Check the name!", true);
-        return;
-      }
-
-      const isLeader = currentUser && p.leaderId === currentUser.id;
-      const isMember = isLeader || (currentUser && store.members.some(m => m.projectId === p.id && m.userId === currentUser.id));
-
-      if (isMember || (p.password || "").trim() === pass || !p.password) {
-        if (currentUser && !store.members.some(m => m.projectId === p.id && m.userId === currentUser.id)) {
-          store.members.push({ projectId: p.id, userId: currentUser.id });
-          saveState();
-        }
-        closeModal();
-        showToast("Password verified! Welcome to the workspace.");
-        navigate('project', p.id);
-      } else {
-        showToast("Incorrect project password. Please try again!", true);
-      }
-    }
-
-    // In-App Modal for Private Project Card Password Unlock / Request to Join
-    function promptUnlockPrivateProject(projId) {
+    function promptJoinOrEnterProject(projId) {
       const p = store.projects.find(x => x.id === projId);
       if (!p) return;
 
@@ -1302,124 +1237,177 @@
         return;
       }
 
-      const isLeader = p.leaderId === currentUser.id;
+      const isLeader = currentUser && p.leaderId === currentUser.id;
       const isMember = isLeader || store.members.some(m => m.projectId === p.id && m.userId === currentUser.id);
 
+      // If approved member or leader:
       if (isMember) {
+        if (p.visibility === 'PRIVATE' && !isLeader && !unlockedPrivateProjects[p.id]) {
+          // Private project requires password verification
+          promptUnlockPrivatePasswordModal(p.id);
+          return;
+        }
+        // Public projects (and unlocked private projects) open immediately with NO password
         navigate('project', p.id);
         return;
       }
 
-      if (!p.password || !p.password.trim()) {
-        store.members.push({ projectId: p.id, userId: currentUser.id });
-        saveState();
-        showToast("Welcome to the workspace!");
-        navigate('project', p.id);
-        return;
-      }
-
+      // If NOT a member, must send a Join Request (for BOTH public and private projects)
       const pendingReq = store.joinRequests.find(r => r.projectId === p.id && r.userId === currentUser.id && r.status === 'PENDING');
+      const isPrivate = p.visibility === 'PRIVATE';
+      const leader = store.users.find(u => u.id === p.leaderId);
 
-      openModal("🔒 Private Project Access", `
+      openModal(isPrivate ? "🔒 Private Project Workspace" : "🌐 Public Project Workspace", `
         <div style="display:flex; flex-direction:column; gap:16px;">
-          <div style="background:var(--c-charcoal-dark); padding:14px; border-radius:8px; border:1px solid rgba(221,213,205,0.2);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <div style="font-weight:700; font-size:1rem; color:var(--c-cream);">${escapeHtml(p.name)}</div>
-              <span class="badge badge-yellow">🔒 Private</span>
+          
+          <!-- Project Summary Card -->
+          <div style="background:var(--c-charcoal-dark); padding:16px; border-radius:10px; border:1px solid rgba(221,213,205,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <h3 style="font-size:1.1rem; font-weight:700; color:var(--c-cream);">${escapeHtml(p.name)}</h3>
+              <span class="badge ${isPrivate ? 'badge-yellow' : 'badge-green'}">${isPrivate ? '🔒 Private' : '🌐 Public'}</span>
             </div>
-            <div class="text-muted text-xs">${escapeHtml(p.description)}</div>
+            <p class="text-muted text-xs" style="line-height:1.5;">${escapeHtml(p.description)}</p>
+            <div style="margin-top:10px; font-size:0.75rem; color:var(--c-sand); display:flex; gap:12px; flex-wrap:wrap;">
+              <span>👑 Led by: <strong>${leader ? escapeHtml(leader.name) : 'Leader'}</strong></span>
+              <span>👥 Team size: <strong>${store.members.filter(m => m.projectId === p.id).length || 1} members</strong></span>
+            </div>
           </div>
 
-          <!-- Option 1: Password Unlock Form -->
-          <form onsubmit="handleUnlockDirectSubmit(event, '${p.id}')" style="display:flex; flex-direction:column; gap:10px;">
-            <label class="text-xs text-muted" style="display:block; font-weight:600;">Option 1: Unlock with Password</label>
-            <div class="input-with-btn">
-              <input id="modal-direct-pass" type="password" placeholder="Enter project password" autofocus />
-              <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('modal-direct-pass', this)">👁️</button>
-            </div>
-            <button type="submit" class="btn btn-primary" style="margin-top:2px;">🔑 Verify & Access &rarr;</button>
-          </form>
-
-          <div style="display:flex; align-items:center; gap:8px; margin:2px 0;">
-            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
-            <span class="text-muted text-xs" style="font-size:11px;">OR</span>
-            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+          <!-- Info notice explaining requirements -->
+          <div style="background:rgba(125,64,71,0.15); border:1px solid rgba(125,64,71,0.35); border-radius:8px; padding:12px; font-size:0.8rem; color:var(--c-cream); line-height:1.5;">
+            ℹ️ <strong>Membership Approval Required:</strong> To join this workspace and access chats, Kanban tasks, and polls, send a join request. The project leader will review your profile to validate your skills and credentials.
+            ${isPrivate ? '<br><span style="color:var(--c-sand); font-size:0.75rem;">🔒 <em>Private Project: Once approved, you will enter the project password to access the workspace.</em></span>' : '<br><span style="color:var(--c-sand); font-size:0.75rem;">🌐 <em>Public Project: Once approved, you can enter anytime with no password needed!</em></span>'}
           </div>
 
-          <!-- Option 2: Send Join Request to Leader -->
-          <div>
-            <label class="text-xs text-muted" style="display:block; margin-bottom:6px; font-weight:600;">Option 2: Request Access from Leader</label>
-            ${pendingReq ? `
-              <div style="background:rgba(234, 179, 8, 0.15); border:1px solid rgba(234, 179, 8, 0.3); padding:10px 14px; border-radius:8px; text-align:center; font-size:0.8rem; color:#fde047;">
-                ⏳ Join request is currently pending leader approval
+          ${pendingReq ? `
+            <div style="background:rgba(234, 179, 8, 0.15); border:1px solid rgba(234, 179, 8, 0.4); padding:14px; border-radius:8px; text-align:center; font-size:0.85rem; color:#fde047; font-weight:600;">
+              ⏳ Your Join Request is Pending Leader Review & Validation
+            </div>
+          ` : `
+            <form onsubmit="handleSendJoinRequest(event, '${p.id}')" style="display:flex; flex-direction:column; gap:10px;">
+              <div>
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Intro Note / Intended Role (Optional)</label>
+                <input id="join-req-note" placeholder="e.g. Full-Stack Engineer excited to build features & API" style="background:var(--c-charcoal-dark);" />
               </div>
-            ` : `
-              <button type="button" onclick="requestToJoinPrivate('${p.id}')" class="btn btn-secondary" style="width:100%; border-color:var(--c-sand); color:var(--c-cream);">
-                📝 Send Join Request to Leader
+              <button type="submit" class="btn btn-primary" style="padding:12px; font-weight:700;">
+                📝 Send Join Request to Leader &rarr;
               </button>
-            `}
-          </div>
+            </form>
+          `}
 
-          <div style="display:flex; justify-content:flex-end; margin-top:4px;">
+          <div style="display:flex; justify-content:flex-end;">
             <button type="button" onclick="closeModal()" class="btn btn-secondary btn-sm">Close</button>
           </div>
         </div>
       `);
     }
 
-    function requestToJoinPrivate(projId) {
+    function handleSendJoinRequest(e, projId) {
+      e.preventDefault();
       if (!currentUser) { showAuthModal('signup'); return; }
+
+      const note = document.getElementById('join-req-note') ? document.getElementById('join-req-note').value.trim() : '';
       const existing = store.joinRequests.find(r => r.projectId === projId && r.userId === currentUser.id);
+
       if (existing && existing.status === 'PENDING') {
-        showToast("Join request already pending for leader review!");
+        showToast("Your join request is already pending leader review!");
         return;
       }
+
       if (!existing) {
         store.joinRequests.push({
-          id: "jr_" + Date.now(),
+          id: "jr_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
           projectId: projId,
           userId: currentUser.id,
+          note: note,
           status: "PENDING",
           createdAt: new Date().toISOString()
         });
       } else {
         existing.status = "PENDING";
+        existing.note = note;
       }
+
       saveState();
       closeModal();
-      showToast("Join request sent to project leader!");
+      showToast("Join request sent! The leader will validate your profile.");
       renderExploreView();
     }
 
-    function handleUnlockDirectSubmit(e, projId) {
+    // In-App Modal for Private Project Password Unlock
+    function promptUnlockPrivatePasswordModal(projId) {
+      const p = store.projects.find(x => x.id === projId);
+      if (!p) return;
+
+      openModal("🔒 Enter Private Project Password", `
+        <form onsubmit="handlePrivatePasswordUnlockSubmit(event, '${p.id}')" style="display:flex; flex-direction:column; gap:14px;">
+          <div style="background:var(--c-charcoal-dark); padding:14px; border-radius:8px; border:1px solid rgba(221,213,205,0.2);">
+            <div style="font-weight:700; color:var(--c-cream); font-size:1rem;">${escapeHtml(p.name)}</div>
+            <div class="text-muted text-xs" style="margin-top:2px;">You are an approved collaborator. Enter the private project password to unlock the workspace:</div>
+          </div>
+
+          <div>
+            <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Project Password *</label>
+            <div class="input-with-btn">
+              <input id="modal-priv-pass-input" type="password" required placeholder="Enter private password" autofocus style="background:var(--c-charcoal-dark);" />
+              <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('modal-priv-pass-input', this)">👁️</button>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+            <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">🔓 Unlock & Enter Workspace &rarr;</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function handlePrivatePasswordUnlockSubmit(e, projId) {
       e.preventDefault();
       const p = store.projects.find(x => x.id === projId);
       if (!p) return;
-      const enteredPass = (document.getElementById('modal-direct-pass').value || '').trim();
 
-      if (!enteredPass) {
-        showToast("Please enter a password or send a join request!", true);
-        return;
-      }
-
-      if (enteredPass === (p.password || "").trim()) {
-        if (currentUser && !store.members.some(m => m.projectId === p.id && m.userId === currentUser.id)) {
-          store.members.push({ projectId: p.id, userId: currentUser.id });
-          saveState();
-        }
+      const entered = (document.getElementById('modal-priv-pass-input').value || '').trim();
+      if (entered === (p.password || '').trim()) {
+        unlockedPrivateProjects[projId] = true;
         closeModal();
-        showToast("Password verified! Project unlocked.");
-        navigate('project', p.id);
+        showToast("Password verified! Workspace unlocked.");
+        navigate('project', projId);
       } else {
-        showToast("Incorrect project password. Please try again!", true);
+        showToast("Incorrect private project password. Please try again!", true);
       }
     }
 
+    // Modal to unlock private project from top bar search
+    function promptJoinPrivateProject() {
+      const privateProjects = store.projects.filter(p => p.visibility === 'PRIVATE');
+      if (privateProjects.length === 0) {
+        showToast("No private projects currently active.");
+        return;
+      }
+
+      openModal("🔒 Access Private Project", `
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <p class="text-muted text-xs">Select a private project to send a join request or unlock access:</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${privateProjects.map(p => `
+              <div onclick="closeModal(); promptJoinOrEnterProject('${p.id}');" style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); padding:12px 14px; border-radius:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onmouseover="this.style.borderColor='var(--c-burgundy)'" onmouseout="this.style.borderColor='rgba(221,213,205,0.2)'">
+                <div>
+                  <div style="font-weight:700; color:var(--c-cream);">${escapeHtml(p.name)}</div>
+                  <div class="text-muted text-xs">${escapeHtml(p.description.slice(0, 60))}...</div>
+                </div>
+                <span class="badge badge-yellow">🔒 Select &rarr;</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `);
+    }
 
     function showViewPasswordModal(pass) {
       openModal("🔑 Project Password", `
         <div style="display:flex; flex-direction:column; gap:14px; text-align:center; padding:10px 0;">
-          <p class="text-muted text-xs">Share this password with collaborators to allow them to join this private workspace:</p>
+          <p class="text-muted text-xs">Project password for approved members to unlock this private workspace:</p>
           <div style="background:var(--c-charcoal-dark); border:1px solid var(--c-burgundy); padding:12px; border-radius:8px; font-size:1.2rem; font-weight:800; font-family:monospace; color:var(--c-cream); letter-spacing:2px;">
             ${escapeHtml(pass || 'None')}
           </div>
@@ -1441,8 +1429,13 @@
       const isLeader = currentUser && project.leaderId === currentUser.id;
       const isMember = isLeader || (currentUser && store.members.some(m => m.projectId === project.id && m.userId === currentUser.id));
 
-      if (project.visibility === 'PRIVATE' && !isMember) {
-        promptUnlockPrivateProject(projectId);
+      if (!isMember) {
+        promptJoinOrEnterProject(projectId);
+        return;
+      }
+
+      if (project.visibility === 'PRIVATE' && !isLeader && !unlockedPrivateProjects[projectId]) {
+        promptUnlockPrivatePasswordModal(projectId);
         return;
       }
 
@@ -1465,8 +1458,6 @@
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
               ${isLeader ? `<button onclick="showDeleteProjectConfirmationModal('${project.id}')" class="btn btn-secondary btn-sm" style="border-color:rgba(125,64,71,0.6); color:var(--c-cream); background:rgba(125,64,71,0.25);">🗑️ Delete Project</button>` : ''}
               ${isMember && !isLeader ? `<button onclick="showLeaveProjectModal('${project.id}')" class="btn btn-secondary btn-sm" style="border-color:rgba(125,64,71,0.5);">🚪 Leave Project</button>` : ''}
-              ${!isMember && currentUser && project.visibility === 'PUBLIC' ? `<button onclick="requestToJoin('${project.id}')" class="btn btn-primary">Request to Join</button>` : ''}
-              ${!currentUser ? `<button onclick="showAuthModal('signup')" class="btn btn-primary btn-sm">Sign in to Join</button>` : ''}
               ${isLeader && project.visibility === 'PRIVATE' ? `<button onclick="showViewPasswordModal('${escapeHtml(project.password || '')}')" class="btn btn-secondary btn-sm">🔑 View Password</button>` : ''}
             </div>
           </div>
@@ -2696,7 +2687,7 @@
       `;
     }
 
-    // --- JOIN REQUESTS (ONLY PROJECT LEADER CAN APPROVE OR DENY) ---
+    // --- JOIN REQUESTS (ONLY PROJECT LEADER CAN VALIDATE, APPROVE OR DENY) ---
     function loadProjectRequests(projId) {
       const container = document.getElementById('project-tab-content');
       if (!container) return;
@@ -2704,27 +2695,87 @@
       const isLeader = proj && currentUser && proj.leaderId === currentUser.id;
 
       if (!isLeader) {
-        container.innerHTML = '<div class="glass-card" style="text-align:center; padding:30px; color:var(--c-burgundy);">🔒 Access Restricted: Only the project leader can view and approve member requests.</div>';
+        container.innerHTML = '<div class="glass-card" style="text-align:center; padding:30px; color:var(--c-burgundy);">🔒 Access Restricted: Only the project leader can view and validate applicant requests.</div>';
         return;
       }
 
       const requests = store.joinRequests.filter(r => r.projectId === projId && r.status === 'PENDING');
       container.innerHTML = `
         <div class="glass-card" style="display:flex; flex-direction:column; gap:16px;">
-          <h3 style="font-weight:600;">Pending Join Requests (${requests.length})</h3>
-          ${requests.length === 0 ? '<div class="text-muted text-sm" style="text-align:center; padding:20px;">No pending join requests</div>' : ''}
-          <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h3 style="font-weight:700; font-size:1.15rem; color:var(--c-cream);">Pending Join Requests (${requests.length})</h3>
+              <p class="text-muted text-xs">Validate applicant profiles, GitHub repositories, and skills before admitting them to the project workspace.</p>
+            </div>
+            <span class="badge ${proj.visibility === 'PUBLIC' ? 'badge-green' : 'badge-yellow'}">${proj.visibility === 'PUBLIC' ? 'Public Project' : '🔒 Private Project'}</span>
+          </div>
+
+          ${requests.length === 0 ? '<div class="text-muted text-sm" style="text-align:center; padding:30px; background:var(--c-charcoal-dark); border-radius:8px;">No pending join requests at this time.</div>' : ''}
+          
+          <div style="display:flex; flex-direction:column; gap:14px;">
             ${requests.map(r => {
-              const u = store.users.find(x => x.id === r.userId) || { name: 'User' };
+              const u = store.users.find(x => x.id === r.userId) || { name: 'Applicant' };
+              const avatarLetter = (u.name || 'U').slice(0, 1).toUpperCase();
+              const skills = u.skills || [];
+              const githubHandle = u.githubId || (u.githubUrl ? u.githubUrl.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '') : '');
+
               return `
-                <div class="flex justify-between items-center" style="background:var(--c-charcoal-dark); padding:12px 16px; border-radius:8px; border:1px solid rgba(221,213,205,0.2);">
-                  <div>
-                    <div style="font-weight:500;">${escapeHtml(u.name)}</div>
-                    <div class="text-muted text-xs">${escapeHtml(u.school || '')}</div>
+                <div style="background:var(--c-charcoal-dark); padding:16px; border-radius:10px; border:1px solid rgba(221,213,205,0.2); display:flex; flex-direction:column; gap:12px;">
+                  
+                  <!-- Applicant Header & Identity -->
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                      ${u.picture ? `
+                        <img src="${u.picture}" style="width:48px; height:48px; border-radius:12px; object-fit:cover; border:2px solid var(--c-burgundy);" />
+                      ` : `
+                        <div style="width:48px; height:48px; border-radius:12px; background:var(--c-burgundy); color:var(--c-cream); font-weight:bold; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">
+                          ${avatarLetter}
+                        </div>
+                      `}
+                      <div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <h4 style="font-weight:700; font-size:1rem; color:var(--c-cream);">${escapeHtml(u.name)}</h4>
+                          <span class="badge badge-indigo text-xs">Applicant</span>
+                        </div>
+                        <div class="text-muted text-xs" style="margin-top:2px;">${escapeHtml(u.headline || (u.school ? `Student at ${u.school}` : 'Pronnect Collaborator'))}</div>
+                        <div style="font-size:0.75rem; color:var(--c-sand); margin-top:2px;">📧 ${escapeHtml(u.email || 'Email Verified')} ${u.school ? `• 🎓 ${escapeHtml(u.school)}` : ''}</div>
+                      </div>
+                    </div>
+
+                    <!-- Leader Action & Profile Review Buttons -->
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                      <button onclick="navigate('profile', '${u.id}')" class="btn btn-secondary btn-sm" style="display:flex; align-items:center; gap:6px;">
+                        <span>👤 View Profile</span>
+                      </button>
+                      <button onclick="handleJoinRequest('${r.id}', 'DENIED', '${projId}')" class="btn btn-secondary btn-sm" style="color:var(--c-burgundy); border-color:rgba(125,64,71,0.5);">
+                        ✕ Deny
+                      </button>
+                      <button onclick="handleJoinRequest('${r.id}', 'APPROVED', '${projId}')" class="btn btn-primary btn-sm">
+                        ✓ Approve & Add
+                      </button>
+                    </div>
                   </div>
-                  <div style="display:flex; gap:8px;">
-                    <button onclick="handleJoinRequest('${r.id}', 'DENIED', '${projId}')" class="btn btn-secondary btn-sm" style="color:var(--c-burgundy);">Deny</button>
-                    <button onclick="handleJoinRequest('${r.id}', 'APPROVED', '${projId}')" class="btn btn-primary btn-sm">Approve</button>
+
+                  <!-- Applicant Bio & Note -->
+                  ${r.note ? `
+                    <div style="background:rgba(221,213,205,0.06); padding:8px 12px; border-radius:6px; font-size:0.8rem; color:var(--c-cream);">
+                      💬 <strong>Applicant Note:</strong> "${escapeHtml(r.note)}"
+                    </div>
+                  ` : ''}
+
+                  <!-- GitHub and Domain Skills Validation Ribbon -->
+                  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding-top:8px; border-top:1px solid rgba(221,213,205,0.1); font-size:0.75rem;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      ${githubHandle ? `
+                        <a href="https://github.com/${encodeURIComponent(githubHandle)}" target="_blank" class="glass-pill" style="padding:4px 10px; display:inline-flex; align-items:center; gap:6px; color:var(--c-cream); text-decoration:none; border:1px solid rgba(221,213,205,0.3);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                          <span>🐙 @${escapeHtml(githubHandle)}</span>
+                        </a>
+                      ` : '<span class="text-muted text-xs">No GitHub linked</span>'}
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                      ${skills.slice(0, 3).map(s => `<span class="badge badge-indigo" style="font-size:10px;">${escapeHtml(s)}</span>`).join('')}
+                    </div>
                   </div>
                 </div>
               `;
@@ -2751,7 +2802,7 @@
         }
         saveState();
       }
-      showToast(action === 'APPROVED' ? 'Member approved!' : 'Request denied.');
+      showToast(action === 'APPROVED' ? 'Member approved & added to project!' : 'Request denied.');
       loadProjectRequests(projId);
       renderProjectView(projId);
     }
