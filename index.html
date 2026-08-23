@@ -133,6 +133,26 @@
     .input-with-btn input { padding-right: 42px; }
     .input-toggle-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; font-size: 1rem; color: var(--c-sand); padding: 4px; border-radius: 4px; cursor: pointer; }
     .input-toggle-btn:hover { color: var(--c-cream); }
+
+    /* Landing Page Section Components */
+    .section-title { text-align: center; margin-bottom: 24px; }
+    .section-title h2 { font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; color: var(--c-cream); letter-spacing: -0.02em; }
+    .section-separator { width: 60px; height: 3px; background: var(--c-burgundy); margin: 10px auto 14px; border-radius: 2px; }
+    
+    .service-nav-btn { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.2); color: var(--c-sand); padding: 14px 20px; border-radius: 12px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s ease; flex: 1; min-width: 140px; }
+    .service-nav-btn.active, .service-nav-btn:hover { background: var(--c-burgundy); color: var(--c-cream); border-color: var(--c-burgundy); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(125,64,71,0.35); }
+
+    .accordion-header { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.2); padding: 14px 18px; border-radius: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; color: var(--c-cream); transition: all 0.2s; }
+    .accordion-header:hover { border-color: var(--c-burgundy); }
+    .accordion-body { background: rgba(0,0,0,0.2); border: 1px solid rgba(221,213,205,0.1); border-top: none; border-radius: 0 0 10px 10px; padding: 14px 18px; color: var(--c-sand); font-size: 0.875rem; line-height: 1.6; display: none; }
+    .accordion-body.active { display: block; }
+
+    .stat-card { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.2); border-radius: 12px; padding: 24px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, border-color 0.2s; }
+    .stat-card:hover { transform: translateY(-3px); border-color: var(--c-burgundy); }
+    .stat-number { font-size: 2.4rem; font-weight: 800; color: var(--c-cream); line-height: 1; }
+
+    .filter-tab-btn { background: var(--c-charcoal-dark); border: 1px solid rgba(221,213,205,0.25); color: var(--c-sand); padding: 8px 16px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .filter-tab-btn.active, .filter-tab-btn:hover { background: var(--c-burgundy); color: var(--c-cream); border-color: var(--c-burgundy); }
   </style>
 </head>
 
@@ -485,14 +505,26 @@
       }
     }
 
-    // --- AUTHENTICATION MODAL: 1ST OPTION CREATE ACCOUNT, 2ND OPTION LOG IN ---
+    // --- AUTHENTICATION MODAL: 1-CLICK GOOGLE & EMAIL/OTP AUTH ---
     function showAuthModal(tab = 'signup') {
       const isSignup = tab === 'signup';
       const registeredUsers = store.users || [];
 
       openModal(isSignup ? "✨ Create Your Profile" : "🔑 Log In to Workspace", `
-        <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; flex-direction:column; gap:14px;">
           
+          <!-- 1-Click Fast Google Sign-in Option -->
+          <button type="button" onclick="triggerGoogleSignIn()" class="btn" style="background:#ffffff; color:#1f2937; font-weight:600; width:100%; box-shadow:0 4px 12px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 16px; border:1px solid #e5e7eb;">
+            <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span>⚡ Continue with Google (Instant Login)</span>
+          </button>
+
+          <div style="display:flex; align-items:center; gap:8px; margin:2px 0;">
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+            <span class="text-muted text-xs">OR USE EMAIL & PASSWORD</span>
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+          </div>
+
           <!-- Tab Switcher -->
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:var(--c-charcoal-dark); padding:4px; border-radius:10px; border:1px solid rgba(221,213,205,0.2);">
             <button type="button" onclick="showAuthModal('signup')" class="btn btn-sm ${isSignup ? 'btn-primary' : 'btn-secondary'}" style="border:none; border-radius:8px; font-weight:600;">
@@ -604,6 +636,108 @@
       const passInput = document.getElementById('auth-login-password');
       if (emailInput) emailInput.value = email;
       if (passInput) passInput.focus();
+    }
+
+    // --- ⚡ 1-CLICK FAST GOOGLE AUTHENTICATION ---
+    function triggerGoogleSignIn(accountEmail = null) {
+      if (accountEmail) {
+        let u = store.users.find(x => x.email.toLowerCase() === accountEmail.toLowerCase());
+        if (!u) {
+          const defaultName = accountEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          u = {
+            id: "u_google_" + Date.now(),
+            name: defaultName,
+            email: accountEmail,
+            school: "Google Verified Builder",
+            avatar: "https://lh3.googleusercontent.com/a/default-user=s96-c",
+            skills: ["Full-Stack", "Google Cloud", "AI Research"],
+            interests: ["Hackathons", "Open Source", "Autonomous Systems"],
+            bio: "Google verified developer & collaborator on Pronnect.",
+            authProvider: "google"
+          };
+          store.users.push(u);
+        }
+        currentUser = u;
+        localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
+        saveState();
+        closeModal();
+        showToast(`✨ Welcome back, ${currentUser.name}! (Signed in via Google)`);
+        renderNav();
+        navigate('explore');
+        return;
+      }
+
+      openModal("⚡ Fast 1-Click Google Sign-In", `
+        <div style="display:flex; flex-direction:column; gap:16px; text-align:center;">
+          <div style="width:48px; height:48px; border-radius:50%; background:white; margin:0 auto; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.3);">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          </div>
+          <div>
+            <h3 style="font-size:1.1rem; font-weight:700; color:var(--c-cream);">Continue with Google Account</h3>
+            <p class="text-muted text-xs" style="margin-top:4px;">Instantly access your projects, team rooms, and kanban boards with zero password hassle.</p>
+          </div>
+
+          <form onsubmit="handleGoogleCustomSubmit(event)" style="display:flex; flex-direction:column; gap:10px; text-align:left;">
+            <div>
+              <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Google Email</label>
+              <input id="google-custom-email" type="email" required placeholder="your.name@gmail.com" autofocus style="background:var(--c-charcoal-dark);" />
+            </div>
+            <div>
+              <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Display Name (Optional)</label>
+              <input id="google-custom-name" placeholder="e.g. Alex Rivera" style="background:var(--c-charcoal-dark);" />
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:4px; width:100%;">🚀 1-Click Fast Login &rarr;</button>
+          </form>
+
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+            <span class="text-muted text-xs">OR CHOOSE DEMO BUILDER</span>
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button type="button" onclick="triggerGoogleSignIn('alex.rivera@gmail.com')" class="btn btn-secondary btn-sm" style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="display:flex; align-items:center; gap:8px;"><span>👨‍💻</span> <strong>Alex Rivera</strong> <span class="text-muted text-xs">(Full-Stack & ROS)</span></span>
+              <span>Select &rarr;</span>
+            </button>
+            <button type="button" onclick="triggerGoogleSignIn('sarah.chen@gmail.com')" class="btn btn-secondary btn-sm" style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="display:flex; align-items:center; gap:8px;"><span>👩‍🔬</span> <strong>Sarah Chen</strong> <span class="text-muted text-xs">(AI & Computer Vision)</span></span>
+              <span>Select &rarr;</span>
+            </button>
+          </div>
+        </div>
+      `);
+    }
+
+    function handleGoogleCustomSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('google-custom-email').value.trim();
+      const customName = document.getElementById('google-custom-name').value.trim();
+      if (!email) return;
+
+      let u = store.users.find(x => x.email.toLowerCase() === email.toLowerCase());
+      if (!u) {
+        const name = customName || email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        u = {
+          id: "u_google_" + Date.now(),
+          name: name,
+          email: email,
+          school: "Google Verified Builder",
+          avatar: "https://lh3.googleusercontent.com/a/default-user=s96-c",
+          skills: ["Full-Stack", "AI Engineering", "Product Design"],
+          interests: ["Hackathons", "Open Source", "Autonomous Systems"],
+          bio: "Google verified developer & collaborator on Pronnect.",
+          authProvider: "google"
+        };
+        store.users.push(u);
+      }
+      currentUser = u;
+      localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
+      saveState();
+      closeModal();
+      showToast(`✨ Welcome, ${currentUser.name}! (Signed in via Google)`);
+      renderNav();
+      navigate('explore');
     }
 
     // --- STEP 1: INITIATE SIGNUP OTP ---
@@ -889,167 +1023,541 @@
     }
 
 
-    // --- 0. FIGMA-INSPIRED STARTUP LANDING PAGE ---
+    // --- 0. MULTIPURPOSE THEME STARTUP LANDING PAGE ---
+    let activeDomainTab = 'web';
+    let activePortfolioFilter = 'all';
+
+    function switchDomainTab(domain) {
+      activeDomainTab = domain;
+      const tabs = ['web', 'app', 'ai', 'ui'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tab-btn-' + t);
+        const pane = document.getElementById('tab-pane-' + t);
+        if (btn) btn.className = 'service-nav-btn' + (t === domain ? ' active' : '');
+        if (pane) pane.style.display = t === domain ? 'block' : 'none';
+      });
+    }
+
+    function toggleAccordionItem(idx) {
+      const bodies = document.querySelectorAll('.accordion-body');
+      const target = document.getElementById('accordion-body-' + idx);
+      const icon = document.getElementById('accordion-icon-' + idx);
+      const isOpen = target && target.style.display === 'block';
+
+      bodies.forEach((b, i) => {
+        b.style.display = 'none';
+        const ic = document.getElementById('accordion-icon-' + i);
+        if (ic) ic.innerText = '+';
+      });
+
+      if (target && !isOpen) {
+        target.style.display = 'block';
+        if (icon) icon.innerText = '−';
+      }
+    }
+
+    function filterLandingPortfolio(category) {
+      activePortfolioFilter = category;
+      const btns = ['all', 'robotics', 'fullstack', 'ui'];
+      btns.forEach(c => {
+        const btn = document.getElementById('filter-btn-' + c);
+        if (btn) btn.className = 'filter-tab-btn' + (c === category ? ' active' : '');
+      });
+
+      const container = document.getElementById('landing-portfolio-grid');
+      if (!container) return;
+
+      const projs = store.projects || [];
+      const filtered = category === 'all' ? projs : projs.filter(p => {
+        const tags = (p.tags || []).map(t => t.toLowerCase());
+        if (category === 'robotics') return tags.some(t => t.includes('robot') || t.includes('ai') || t.includes('hardware') || t.includes('drone'));
+        if (category === 'fullstack') return tags.some(t => t.includes('web') || t.includes('stack') || t.includes('next') || t.includes('crypto'));
+        if (category === 'ui') return tags.some(t => t.includes('design') || t.includes('ui') || t.includes('figma') || t.includes('creative'));
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="glass-card" style="grid-column:1/-1; text-align:center; padding:32px; color:var(--c-sand);">No projects found in this domain yet. <button onclick="navigate('new-project')" class="btn btn-primary btn-sm" style="margin-left:8px;">+ Start First Project</button></div>`;
+      } else {
+        container.innerHTML = filtered.slice(0, 6).map(p => {
+          const leader = store.users.find(u => u.id === p.leaderId);
+          const members = store.members.filter(m => m.projectId === p.id).length + 1;
+          const isPriv = p.visibility === 'PRIVATE';
+          return `
+            <div class="glass-card flex flex-col justify-between" style="cursor:pointer; transition:transform 0.2s, border-color 0.2s;" onmouseover="this.style.borderColor='var(--c-burgundy)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(221,213,205,0.2)'; this.style.transform='translateY(0)'" onclick="handleProjectCardClick('${p.id}')">
+              <div>
+                <div class="flex justify-between items-center" style="margin-bottom:8px;">
+                  <div style="font-weight:700; font-size:1.05rem; color:var(--c-cream);">${escapeHtml(p.name)}</div>
+                  ${isPriv ? '<span class="badge badge-yellow">🔒 Private</span>' : '<span class="badge badge-green">🌐 Public</span>'}
+                </div>
+                <p class="text-muted text-xs" style="margin-bottom:12px; line-height:1.5;">${escapeHtml(p.description)}</p>
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:12px;">
+                  ${(p.tags || []).map(t => `<span class="badge badge-indigo">${escapeHtml(t)}</span>`).join('')}
+                </div>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(221,213,205,0.15); padding-top:10px; font-size:0.75rem; color:var(--c-sand);">
+                <div>Led by <strong>${leader ? escapeHtml(leader.name) : 'Lead Builder'}</strong></div>
+                <span class="badge">${members} Member${members !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function handleContactSubmit(e) {
+      e.preventDefault();
+      const form = document.getElementById('landing-contact-form');
+      if (form) form.reset();
+      showToast("Thank you for your message! Our team will get back to you soon. 📬");
+    }
+
+    function handleNewsletterSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('newsletter-email');
+      if (input) input.value = '';
+      showToast("Subscribed! You'll receive latest hackathon & project updates. 🎉");
+    }
+
     function renderLandingPageView() {
       const root = document.getElementById('app-root');
       root.innerHTML = `
-        <div style="position:relative; display:flex; flex-direction:column; gap:64px; padding:20px 0 60px;">
+        <div style="position:relative; display:flex; flex-direction:column; gap:64px; padding:10px 0 40px;">
           <div class="hero-glow"></div>
 
-          <!-- Hero Section -->
-          <div style="text-align:center; max-width:860px; margin:40px auto 0; display:flex; flex-direction:column; align-items:center; gap:22px; position:relative; z-index:2;">
-            <div class="glass-pill" style="padding:6px 16px; display:inline-flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--c-sand);">
-              <span style="width:8px; height:8px; border-radius:50%; background:var(--c-burgundy); box-shadow:0 0 8px var(--c-burgundy);"></span>
-              <span>The Next-Gen Collaboration Hub for Builders & Hackers</span>
+          <!-- 1. HERO SECTION WITH IMAGE BANNER & FAST CTA -->
+          <div style="position:relative; border-radius:20px; overflow:hidden; border:1px solid rgba(125,64,71,0.4); box-shadow:0 25px 60px rgba(0,0,0,0.7); background:#232020;">
+            <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(46,46,46,0.85) 0%, rgba(35,32,32,0.95) 100%), url('/public/images/hero.jpg') center/cover no-repeat; filter:brightness(0.85); z-index:1;"></div>
+            
+            <div style="position:relative; z-index:2; padding:60px 28px; text-align:center; max-width:920px; margin:0 auto; display:flex; flex-direction:column; align-items:center; gap:22px;">
+              <div class="glass-pill" style="padding:6px 18px; display:inline-flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--c-sand); border:1px solid rgba(221,213,205,0.3);">
+                <span style="width:8px; height:8px; border-radius:50%; background:var(--c-burgundy); box-shadow:0 0 10px var(--c-burgundy);"></span>
+                <span>The Premier Collaborative Workspace for Engineers, Designers & Hackers</span>
+              </div>
+
+              <h1 style="font-size:clamp(2.3rem, 5.2vw, 3.8rem); font-weight:900; line-height:1.12; letter-spacing:-0.03em; color:var(--c-cream);">
+                BUILD & SHIP <span class="gradient-text">BREAKTHROUGH PROJECTS</span> TOGETHER
+              </h1>
+
+              <p class="text-muted" style="font-size:clamp(1rem, 2vw, 1.2rem); max-width:720px; line-height:1.6; color:var(--c-sand);">
+                Pronnect unites student developers, hardware tinkerers, and UI/UX designers with real-time room chats, voice notes, Kanban boards, consensus polls, and private encrypted workspaces.
+              </p>
+
+              <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px;">
+                ${!currentUser ? `
+                  <button onclick="triggerGoogleSignIn()" class="btn" style="background:#ffffff; color:#1f2937; padding:12px 24px; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,0.4); display:flex; align-items:center; gap:10px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                    <span>⚡ 1-Click Fast Google Login</span>
+                  </button>
+                  <button onclick="showAuthModal('signup')" class="btn btn-primary" style="padding:12px 26px;">
+                    ✨ Create Account &rarr;
+                  </button>
+                ` : `
+                  <button onclick="navigate('explore')" class="btn btn-primary" style="padding:12px 28px;">
+                    🚀 Open Workspace Hub &rarr;
+                  </button>
+                  <button onclick="navigate('new-project')" class="btn btn-secondary" style="padding:12px 24px;">
+                    + Start New Project
+                  </button>
+                `}
+                <button onclick="navigate('explore')" class="btn btn-secondary" style="padding:12px 24px;">
+                  🔍 Explore Projects
+                </button>
+              </div>
+
+              <!-- Social Proof Counter -->
+              <div style="display:flex; align-items:center; gap:12px; margin-top:10px; font-size:0.82rem; color:var(--c-sand);">
+                <div style="display:flex; margin-left:8px;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:var(--c-burgundy); border:2px solid var(--c-charcoal); display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-cream); font-size:10px;">A</div>
+                  <div style="width:28px; height:28px; border-radius:50%; background:#964e56; border:2px solid var(--c-charcoal); margin-left:-8px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-cream); font-size:10px;">S</div>
+                  <div style="width:28px; height:28px; border-radius:50%; background:var(--c-sand); color:var(--c-charcoal); border:2px solid var(--c-charcoal); margin-left:-8px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px;">O</div>
+                </div>
+                <span>Joined by <strong>2,400+ developers</strong> from top colleges & hackathons</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. DOMAIN & SERVICES SPECIALTY TABS -->
+          <div class="glass-card" style="padding:32px 24px;">
+            <div class="section-title">
+              <h2>SPECIALIZED COLLABORATION DOMAINS</h2>
+              <div class="section-separator"></div>
+              <p class="text-muted text-xs">Explore curated workflows and sprint tooling tailored for each engineering domain.</p>
             </div>
 
-            <h1 style="font-size:clamp(2.4rem, 5vw, 3.8rem); font-weight:800; line-height:1.15; letter-spacing:-0.03em;">
-              Team Up & Build <span class="gradient-text">Exceptional Projects</span> Together
-            </h1>
-
-            <p class="text-muted" style="font-size:clamp(1rem, 2vw, 1.25rem); max-width:680px; line-height:1.6;">
-              Pronnect connects developers, designers, and students to build hackathon projects, AI systems, and startups with real-time chat, Kanban task boards, and live polls.
-            </p>
-
-            <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px;">
-              ${!currentUser ? `
-                <button onclick="showAuthModal('signup')" class="btn btn-primary" style="padding:12px 28px; font-size:0.95rem;">
-                  ✨ Create Account & Start &rarr;
-                </button>
-                <button onclick="showAuthModal('login')" class="btn btn-secondary" style="padding:12px 24px; font-size:0.95rem;">
-                  🔑 Log In
-                </button>
-              ` : `
-                <button onclick="navigate('explore')" class="btn btn-primary" style="padding:12px 28px; font-size:0.95rem;">
-                  Launch Workspace &rarr;
-                </button>
-              `}
-              <button onclick="navigate('explore')" class="btn btn-secondary" style="padding:12px 24px; font-size:0.95rem;">
-                Explore Projects
+            <!-- Domain Switcher Buttons -->
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px;">
+              <button id="tab-btn-web" onclick="switchDomainTab('web')" class="service-nav-btn active">
+                <span style="font-size:1.4rem;">💻</span>
+                <span>WEB & CLOUD</span>
+              </button>
+              <button id="tab-btn-app" onclick="switchDomainTab('app')" class="service-nav-btn">
+                <span style="font-size:1.4rem;">📱</span>
+                <span>MOBILE & APPS</span>
+              </button>
+              <button id="tab-btn-ai" onclick="switchDomainTab('ai')" class="service-nav-btn">
+                <span style="font-size:1.4rem;">🤖</span>
+                <span>AI & ROBOTICS</span>
+              </button>
+              <button id="tab-btn-ui" onclick="switchDomainTab('ui')" class="service-nav-btn">
+                <span style="font-size:1.4rem;">🎨</span>
+                <span>UI/UX & PRODUCT</span>
               </button>
             </div>
 
-
-            <!-- Social proof -->
-            <div style="display:flex; align-items:center; gap:12px; margin-top:14px; font-size:0.8rem; color:var(--c-sand);">
-              <div style="display:flex; margin-left:8px;">
-                <div style="width:28px; height:28px; border-radius:50%; background:var(--c-burgundy); border:2px solid var(--c-charcoal); margin-left:-8px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-cream); font-size:10px;">A</div>
-                <div style="width:28px; height:28px; border-radius:50%; background:#964e56; border:2px solid var(--c-charcoal); margin-left:-8px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-cream); font-size:10px;">S</div>
-                <div style="width:28px; height:28px; border-radius:50%; background:var(--c-sand); color:var(--c-charcoal); border:2px solid var(--c-charcoal); margin-left:-8px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px;">O</div>
-              </div>
-              <span>Joined by <strong>2,400+ developers</strong> from top colleges & teams</span>
-            </div>
-          </div>
-
-          <!-- Product Showcase Mockup Card -->
-          <div class="glass-card" style="max-width:1000px; margin:0 auto; padding:28px; border:1px solid rgba(125,64,71,0.4); box-shadow:0 20px 50px rgba(0,0,0,0.6);">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(221,213,205,0.2); padding-bottom:16px; margin-bottom:20px;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div style="width:12px; height:12px; border-radius:50%; background:var(--c-burgundy);"></div>
-                <div style="width:12px; height:12px; border-radius:50%; background:var(--c-sand);"></div>
-                <div style="width:12px; height:12px; border-radius:50%; background:var(--c-cream);"></div>
-                <span style="margin-left:12px; font-size:0.8rem; color:var(--c-sand); font-family:monospace;">workspace.pronnect.app/autonomous-rover</span>
-              </div>
-              <div style="display:flex; gap:6px;">
-                <span class="badge badge-green"><span class="status-dot status-online" style="margin-right:4px;"></span> 3 Online</span>
-                <span class="badge badge-indigo">Active Sprint</span>
-              </div>
-            </div>
-
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px;">
-              <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.15); border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:8px;">
-                <div class="text-xs font-bold text-muted uppercase">💬 Live Team Chat</div>
-                <div style="font-size:0.8rem; background:var(--c-charcoal-card); color:var(--c-cream); padding:8px 12px; border-radius:8px;">Sarah: ROS2 navigation costmaps calibrated! 🚀</div>
-                <div style="font-size:0.8rem; background:var(--c-burgundy); color:var(--c-cream); padding:8px 12px; border-radius:8px; align-self:flex-end;">Alex: Awesome! Testing obstacle avoidance now.</div>
-                <div class="typing-indicator" style="padding:0; margin-top:4px;">
-                  <span>Alex is typing</span>
-                  <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+            <!-- Tab Content Panes -->
+            <div id="tab-pane-web" style="display:block;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; align-items:center;">
+                <div>
+                  <h3 style="font-size:1.4rem; font-weight:700; color:var(--c-cream); margin-bottom:8px;">Full-Stack & Cloud Architecture</h3>
+                  <p class="text-muted text-sm" style="line-height:1.6; margin-bottom:14px;">
+                    Coordinate Next.js frontends, zero-downtime microservices, and distributed database synchronization. Share architecture diagrams, track sprint tickets on the Kanban board, and verify PRs in real time.
+                  </p>
+                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
+                    <span class="badge badge-indigo">TypeScript</span>
+                    <span class="badge badge-indigo">Node.js HTTP</span>
+                    <span class="badge badge-indigo">PostgreSQL</span>
+                    <span class="badge badge-indigo">Docker</span>
+                  </div>
+                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">Explore Web Projects &rarr;</button>
                 </div>
-              </div>
-
-              <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.15); border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:8px;">
-                <div class="text-xs font-bold text-muted uppercase">📋 Kanban Board</div>
-                <div style="background:var(--c-charcoal-card); border-left:3px solid var(--c-sand); padding:8px 12px; border-radius:6px; font-size:0.8rem;">
-                  <div style="font-weight:600;">LiDAR Outdoor Mapping</div>
-                  <div class="text-muted text-xs">Status: Done ✓</div>
-                </div>
-                <div style="background:var(--c-charcoal-card); border-left:3px solid var(--c-burgundy); padding:8px 12px; border-radius:6px; font-size:0.8rem;">
-                  <div style="font-weight:600;">Hardware Chassis Mount</div>
-                  <div class="text-muted text-xs">Status: In Progress</div>
-                </div>
-              </div>
-
-              <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.15); border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:8px;">
-                <div class="text-xs font-bold text-muted uppercase">📊 Live Poll</div>
-                <div style="font-size:0.85rem; font-weight:600;">Edge compute inference board?</div>
-                <div style="background:rgba(125,64,71,0.25); border:1px solid rgba(125,64,71,0.5); padding:6px 10px; border-radius:6px; font-size:0.75rem; display:flex; justify-content:space-between;">
-                  <span>Jetson Orin Nano (75%)</span>
-                  <span>3 votes</span>
-                </div>
-                <div style="background:var(--c-charcoal-card); padding:6px 10px; border-radius:6px; font-size:0.75rem; display:flex; justify-content:space-between;">
-                  <span>Raspberry Pi 5 (25%)</span>
-                  <span>1 vote</span>
+                <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); border-radius:12px; padding:20px; font-family:monospace; font-size:0.8rem;">
+                  <div style="color:var(--c-sand); margin-bottom:8px;">// pronnect-stack.config.js</div>
+                  <div style="color:#4ade80;">export default {</div>
+                  <div style="padding-left:14px; color:var(--c-cream);">runtime: 'Node 20+',</div>
+                  <div style="padding-left:14px; color:var(--c-cream);">syncMesh: 'Peer-to-Peer GunDB',</div>
+                  <div style="padding-left:14px; color:var(--c-cream);">auth: 'Google OAuth + OTP',</div>
+                  <div style="padding-left:14px; color:var(--c-cream);">status: 'Ready to Deploy'</div>
+                  <div style="color:#4ade80;">};</div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Bento Grid Features -->
-          <div style="display:flex; flex-direction:column; gap:32px;">
-            <div style="text-align:center;">
-              <h2 style="font-size:2.2rem; font-weight:800; margin-bottom:8px;">Everything Your Team Needs to Ship</h2>
-              <p class="text-muted text-sm max-width-md mx-auto">A unified collaboration stack built specifically for engineers and designers.</p>
+            <div id="tab-pane-app" style="display:none;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; align-items:center;">
+                <div>
+                  <h3 style="font-size:1.4rem; font-weight:700; color:var(--c-cream); margin-bottom:8px;">Cross-Platform Mobile Apps</h3>
+                  <p class="text-muted text-sm" style="line-height:1.6; margin-bottom:14px;">
+                    Build React Native and Flutter mobile applications with shared asset repositories, audio voice message coordination, and instant leader review checkpoints.
+                  </p>
+                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
+                    <span class="badge badge-indigo">React Native</span>
+                    <span class="badge badge-indigo">Flutter</span>
+                    <span class="badge badge-indigo">Swift</span>
+                    <span class="badge badge-indigo">Kotlin</span>
+                  </div>
+                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">Explore App Projects &rarr;</button>
+                </div>
+                <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); border-radius:12px; padding:20px; text-align:center;">
+                  <div style="font-size:2.5rem; margin-bottom:8px;">📱</div>
+                  <div style="font-weight:700; color:var(--c-cream);">Native Performance & Offline-First</div>
+                  <div class="text-muted text-xs" style="margin-top:4px;">Unified real-time sync across iOS and Android test environments.</div>
+                </div>
+              </div>
             </div>
 
-            <div class="grid grid-3">
-              <div class="bento-card">
-                <div style="font-size:2rem; margin-bottom:12px;">💬</div>
-                <h3 style="font-size:1.2rem; font-weight:700; margin-bottom:8px;">Live Chat & Presence</h3>
-                <p class="text-muted text-sm">Real-time scoped room discussions, typing indicator feedback, and online user presence dots.</p>
+            <div id="tab-pane-ai" style="display:none;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; align-items:center;">
+                <div>
+                  <h3 style="font-size:1.4rem; font-weight:700; color:var(--c-cream); margin-bottom:8px;">AI Research & Autonomous Robotics</h3>
+                  <p class="text-muted text-sm" style="line-height:1.6; margin-bottom:14px;">
+                    Form teams for training LLMs, PyTorch computer vision pipelines, and ROS2 autonomous drone firmware. Coordinate model weights and hardware telemetry in scoped rooms.
+                  </p>
+                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
+                    <span class="badge badge-indigo">PyTorch</span>
+                    <span class="badge badge-indigo">ROS2 Humble</span>
+                    <span class="badge badge-indigo">Computer Vision</span>
+                    <span class="badge badge-indigo">Jetson AI</span>
+                  </div>
+                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">Explore AI & Robotics &rarr;</button>
+                </div>
+                <div style="border-radius:12px; overflow:hidden; border:1px solid rgba(221,213,205,0.2);">
+                  <img src="/public/images/featured.jpg" alt="Robotics workbench" style="width:100%; height:200px; object-fit:cover;" />
+                </div>
               </div>
+            </div>
 
-              <div class="bento-card">
-                <div style="font-size:2rem; margin-bottom:12px;">📋</div>
-                <h3 style="font-size:1.2rem; font-weight:700; margin-bottom:8px;">Interactive Kanban Tasks</h3>
-                <p class="text-muted text-sm">Manage tasks across To Do, In Progress, and Done with member assignees and real-time drag-free status updates.</p>
-              </div>
-
-              <div class="bento-card">
-                <div style="font-size:2rem; margin-bottom:12px;">📊</div>
-                <h3 style="font-size:1.2rem; font-weight:700; margin-bottom:8px;">Live Consensus Polls</h3>
-                <p class="text-muted text-sm">Create instant team polls with real-time percentage progress bars and voter counts.</p>
-              </div>
-
-              <div class="bento-card">
-                <div style="font-size:2rem; margin-bottom:12px;">🔒</div>
-                <h3 style="font-size:1.2rem; font-weight:700; margin-bottom:8px;">Password-Protected Projects</h3>
-                <p class="text-muted text-sm">Lock stealth or private projects with project passwords to control who can view and join your workspace.</p>
-              </div>
-
-              <div class="bento-card">
-                <div style="font-size:2rem; margin-bottom:12px;">⚡</div>
-                <h3 style="font-size:1.2rem; font-weight:700; margin-bottom:8px;">1-Click Google Sign-In</h3>
-                <p class="text-muted text-sm">Zero password hassle. Jump straight into projects using Google authentication.</p>
-              </div>
-
-              <div class="bento-card">
-                <div style="font-size:2rem; margin-bottom:12px;">🌐</div>
-                <h3 style="font-size:1.2rem; font-weight:700; margin-bottom:8px;">Real-Time Cloud Sync</h3>
-                <p class="text-muted text-sm">Synchronized across all browsers and devices instantly with global persistent cloud database storage.</p>
+            <div id="tab-pane-ui" style="display:none;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; align-items:center;">
+                <div>
+                  <h3 style="font-size:1.4rem; font-weight:700; color:var(--c-cream); margin-bottom:8px;">UI/UX Design Systems & Sprints</h3>
+                  <p class="text-muted text-sm" style="line-height:1.6; margin-bottom:14px;">
+                    Pair designers with engineers. Share direct Figma prototype links, review media assets in the dedicated project resources tab, and run team consensus polls on design decisions.
+                  </p>
+                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
+                    <span class="badge badge-indigo">Figma</span>
+                    <span class="badge badge-indigo">Design Systems</span>
+                    <span class="badge badge-indigo">Wireframing</span>
+                    <span class="badge badge-indigo">Micro-interactions</span>
+                  </div>
+                  <button onclick="navigate('explore')" class="btn btn-primary btn-sm">Explore Design Projects &rarr;</button>
+                </div>
+                <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); border-radius:12px; padding:20px; text-align:center;">
+                  <div style="font-size:2.5rem; margin-bottom:8px;">🎨</div>
+                  <div style="font-weight:700; color:var(--c-cream);">Figma-Quality Glassmorphism</div>
+                  <div class="text-muted text-xs" style="margin-top:4px;">Exact Tailwind-free design tokens with rich responsive typography.</div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Bottom CTA -->
-          <div class="glass-card" style="text-align:center; padding:48px 24px; background:linear-gradient(135deg, rgba(125,64,71,0.25), rgba(221,213,205,0.1)); border:1px solid rgba(125,64,71,0.5);">
-            <h2 style="font-size:2rem; font-weight:800; margin-bottom:10px;">Ready to Build Your Next Project?</h2>
-            <p class="text-muted text-sm max-width-md mx-auto" style="margin-bottom:20px;">Join builders discovering teammates across the globe right now.</p>
-            <button onclick="${currentUser ? "navigate('explore')" : "triggerGoogleSignIn()"}" class="btn btn-primary" style="padding:12px 32px; font-size:1rem;">
-              ${currentUser ? "Open Projects Dashboard &rarr;" : "Sign in with Google & Start &rarr;"}
-            </button>
+          <!-- 3. FEATURED WORK SPOTLIGHT -->
+          <div class="glass-card" style="padding:32px 24px; border:1px solid rgba(125,64,71,0.5);">
+            <div class="section-title">
+              <h2>FEATURED TEAM SPOTLIGHT</h2>
+              <div class="section-separator"></div>
+              <p class="text-muted text-xs">Real engineering builds currently shipping on Pronnect workspaces.</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:28px; align-items:center;">
+              <div style="border-radius:14px; overflow:hidden; border:1px solid rgba(221,213,205,0.2); box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                <img src="/public/images/featured.jpg" alt="Featured Autonomous Project" style="width:100%; height:260px; object-fit:cover;" />
+              </div>
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="badge badge-yellow">⭐ Hackathon Winner</span>
+                  <span class="badge badge-green">🟢 Active Sprint</span>
+                </div>
+                <h3 style="font-size:1.5rem; font-weight:800; color:var(--c-cream);">AERO-SYNC: Autonomous Inspection Drone</h3>
+                <p class="text-muted text-sm" style="line-height:1.6;">
+                  Collaborative build uniting 4 student engineers across robotics hardware, embedded C++, and React dashboard visualization. Features edge LiDAR slam and live consensus telemetry.
+                </p>
+                <div style="background:var(--c-charcoal-dark); border-radius:8px; padding:12px 16px; font-size:0.8rem; border:1px solid rgba(221,213,205,0.15);">
+                  <div><strong>Team Lead:</strong> Alex Rivera (Dayananda Sagar CE)</div>
+                  <div style="margin-top:4px;"><strong>Sprint Goal:</strong> Autonomous obstacle avoidance & cloud telemetry</div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:4px;">
+                  <button onclick="navigate('explore')" class="btn btn-primary">Open Workspace &rarr;</button>
+                  <button onclick="navigate('new-project')" class="btn btn-secondary">+ Submit Project</button>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- 4. INTERACTIVE METRICS & STATS COUNTER -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+            <div class="stat-card">
+              <span class="stat-number">560+</span>
+              <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">BUILDER TEAMS</div>
+              <div class="text-muted text-xs">Collaborating in active workspaces</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">120+</span>
+              <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">PROJECTS SHIPPED</div>
+              <div class="text-muted text-xs">Hackathon & startup prototypes</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">2,400+</span>
+              <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">ACTIVE USERS</div>
+              <div class="text-muted text-xs">Engineers, students & designers</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">99.8%</span>
+              <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">MESH UPTIME</div>
+              <div class="text-muted text-xs">Real-time P2P database sync</div>
+            </div>
+          </div>
+
+          <!-- 5. WHY CHOOSE PRONNECT (ACCORDION & CORE PILLARS) -->
+          <div class="glass-card" style="padding:32px 24px;">
+            <div class="section-title">
+              <h2>WHY BUILDERS CHOOSE PRONNECT</h2>
+              <div class="section-separator"></div>
+              <p class="text-muted text-xs">Engineered for speed, privacy, and zero deployment friction.</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:24px; align-items:start;">
+              <!-- Accordion List -->
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                  <div class="accordion-header" onclick="toggleAccordionItem(1)">
+                    <span>⚡ 1. Zero-Dependency Standalone Speed</span>
+                    <span id="accordion-icon-1" style="font-size:1.2rem; font-weight:bold;">−</span>
+                  </div>
+                  <div id="accordion-body-1" class="accordion-body active">
+                    No heavy bundle bloat or complex build chains. Pronnect runs on pure native Node.js and lightweight single-bundle frontend with instant page transitions.
+                  </div>
+                </div>
+
+                <div>
+                  <div class="accordion-header" onclick="toggleAccordionItem(2)">
+                    <span>🔒 2. Private Encrypted Workspaces & Leader Controls</span>
+                    <span id="accordion-icon-2" style="font-size:1.2rem; font-weight:bold;">+</span>
+                  </div>
+                  <div id="accordion-body-2" class="accordion-body">
+                    Lock stealth projects with custom passwords or require manual join approval from the project leader. Leaders maintain full control over member management.
+                  </div>
+                </div>
+
+                <div>
+                  <div class="accordion-header" onclick="toggleAccordionItem(3)">
+                    <span>🌐 3. Global Mesh Sync Across Networks</span>
+                    <span id="accordion-icon-3" style="font-size:1.2rem; font-weight:bold;">+</span>
+                  </div>
+                  <div id="accordion-body-3" class="accordion-body">
+                    Built on Gun.js WebSocket mesh relays and SSE channels. Collaborators see real-time chat, Kanban tasks, and polls without needing to be on the same local Wi-Fi.
+                  </div>
+                </div>
+
+                <div>
+                  <div class="accordion-header" onclick="toggleAccordionItem(4)">
+                    <span>🎙️ 4. Unified Voice Notes, Media & Consensus Polls</span>
+                    <span id="accordion-icon-4" style="font-size:1.2rem; font-weight:bold;">+</span>
+                  </div>
+                  <div id="accordion-body-4" class="accordion-body">
+                    Send inline microphone voice memos, attach code snippets and design files with auto-sync to project media, and vote on team polls with live percentage bars.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Visual Pillar Card -->
+              <div class="bento-card" style="background:var(--c-charcoal-dark); display:flex; flex-direction:column; gap:16px;">
+                <div style="font-size:2.2rem;">🚀</div>
+                <h3 style="font-size:1.2rem; font-weight:700; color:var(--c-cream);">1-Click Fast Google Authentication</h3>
+                <p class="text-muted text-xs" style="line-height:1.6;">
+                  Skip manual forms and password recovery. Sign in instantly using your Google account to access all your projects and team chat rooms.
+                </p>
+                <button onclick="${currentUser ? "navigate('explore')" : "triggerGoogleSignIn()"}" class="btn btn-primary" style="margin-top:auto;">
+                  ${currentUser ? "Launch Workspace &rarr;" : "Try 1-Click Fast Login &rarr;"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. LATEST PROJECTS GALLERY & CATEGORY FILTERS -->
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+              <div>
+                <h2 style="font-size:1.8rem; font-weight:800; color:var(--c-cream);">LATEST ACTIVE WORKSPACES</h2>
+                <p class="text-muted text-xs" style="margin-top:4px;">Browse or request to join live hackathon builds.</p>
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button id="filter-btn-all" onclick="filterLandingPortfolio('all')" class="filter-tab-btn active">Show All</button>
+                <button id="filter-btn-robotics" onclick="filterLandingPortfolio('robotics')" class="filter-tab-btn">Robotics & AI</button>
+                <button id="filter-btn-fullstack" onclick="filterLandingPortfolio('fullstack')" class="filter-tab-btn">Full-Stack & Web</button>
+                <button id="filter-btn-ui" onclick="filterLandingPortfolio('ui')" class="filter-tab-btn">UI/UX Design</button>
+              </div>
+            </div>
+
+            <div id="landing-portfolio-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;"></div>
+          </div>
+
+          <!-- 7. TESTIMONIALS & BUILDER STORIES -->
+          <div class="glass-card" style="padding:32px 24px; text-align:center;">
+            <div class="section-title">
+              <h2>BUILDER TESTIMONIALS</h2>
+              <div class="section-separator"></div>
+            </div>
+
+            <div style="max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:16px;">
+              <div style="font-size:1.1rem; font-style:italic; line-height:1.6; color:var(--c-cream);">
+                "Pronnect transformed how our hackathon squad collaborated. From real-time ROS2 telemetry discussions to instant consensus polling on architecture decisions, we shipped our drone prototype 3x faster."
+              </div>
+              <div style="font-size:0.85rem; color:var(--c-sand);">
+                <strong>Sarah Chen</strong> — AI Research Lead, Autonomous Systems Lab
+              </div>
+            </div>
+          </div>
+
+          <!-- 8. CONTACT & FEEDBACK MESSAGE FORM -->
+          <div class="glass-card" style="padding:32px 24px;">
+            <div class="section-title">
+              <h2>GET IN TOUCH & SHARE FEEDBACK</h2>
+              <div class="section-separator"></div>
+              <p class="text-muted text-xs">Have questions or want to partner your college hackathon? Reach out below.</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px;">
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <div style="display:flex; gap:12px; align-items:center;">
+                  <span style="font-size:1.5rem;">🏢</span>
+                  <div>
+                    <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">Campus & Community Hub</div>
+                    <div class="text-muted text-xs">Open Collaboration Platform for Student Builders</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:center;">
+                  <span style="font-size:1.5rem;">📩</span>
+                  <div>
+                    <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">Support Email</div>
+                    <div class="text-muted text-xs">support@pronnect.app</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:center;">
+                  <span style="font-size:1.5rem;">🌐</span>
+                  <div>
+                    <div style="font-weight:700; font-size:0.9rem; color:var(--c-cream);">Real-Time P2P Mesh</div>
+                    <div class="text-muted text-xs">Connected via Global Relays 24/7</div>
+                  </div>
+                </div>
+              </div>
+
+              <form id="landing-contact-form" onsubmit="handleContactSubmit(event)" style="display:flex; flex-direction:column; gap:12px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                  <input placeholder="Your Name" required style="background:var(--c-charcoal-dark);" />
+                  <input type="email" placeholder="Your Email" required style="background:var(--c-charcoal-dark);" />
+                </div>
+                <input placeholder="Subject / Project Topic" required style="background:var(--c-charcoal-dark);" />
+                <textarea rows="3" placeholder="Message or Collaboration Inquiry..." required style="background:var(--c-charcoal-dark);"></textarea>
+                <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send Message &rarr;</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- 9. MULTIPURPOSE FOOTER WITH SITEMAP & NEWSLETTER -->
+          <footer style="border-top:1px solid rgba(221,213,205,0.2); padding-top:32px; display:flex; flex-direction:column; gap:28px;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:24px;">
+              <div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                  <div style="width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg, var(--c-cream), var(--c-burgundy)); display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--c-charcoal); font-size:0.9rem;">P</div>
+                  <span class="gradient-text" style="font-size:1.2rem; font-weight:800;">Pronnect</span>
+                </div>
+                <p class="text-muted text-xs" style="line-height:1.6;">
+                  Zero-dependency collaboration platform built for student engineers and fast hackathon squads.
+                </p>
+              </div>
+
+              <div>
+                <div style="font-weight:700; font-size:0.85rem; color:var(--c-cream); margin-bottom:10px;">NAVIGATION</div>
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem;">
+                  <a href="javascript:void(0)" onclick="navigate('home')" style="color:var(--c-sand); text-decoration:none;">Home</a>
+                  <a href="javascript:void(0)" onclick="navigate('explore')" style="color:var(--c-sand); text-decoration:none;">Explore Projects</a>
+                  <a href="javascript:void(0)" onclick="navigate('global-chat')" style="color:var(--c-sand); text-decoration:none;">Community Chat</a>
+                  <a href="javascript:void(0)" onclick="navigate('new-project')" style="color:var(--c-sand); text-decoration:none;">+ Create Project</a>
+                </div>
+              </div>
+
+              <div>
+                <div style="font-weight:700; font-size:0.85rem; color:var(--c-cream); margin-bottom:10px;">FEATURES</div>
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:0.8rem; color:var(--c-sand);">
+                  <div>💬 Live Chat & Voice Notes</div>
+                  <div>📋 Drag-Free Kanban Board</div>
+                  <div>📊 Consensus Team Polls</div>
+                  <div>🔒 Encrypted Stealth Mode</div>
+                </div>
+              </div>
+
+              <div>
+                <div style="font-weight:700; font-size:0.85rem; color:var(--c-cream); margin-bottom:10px;">NEWSLETTER</div>
+                <p class="text-muted text-xs" style="margin-bottom:8px;">Get hackathon updates and project invites.</p>
+                <form onsubmit="handleNewsletterSubmit(event)" style="display:flex; gap:6px;">
+                  <input id="newsletter-email" type="email" placeholder="your.email@edu" required style="font-size:0.8rem; padding:8px 10px; background:var(--c-charcoal-dark);" />
+                  <button type="submit" class="btn btn-primary btn-sm">Join</button>
+                </form>
+              </div>
+            </div>
+
+            <div style="border-top:1px solid rgba(221,213,205,0.1); padding-top:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:0.75rem; color:var(--c-sand);">
+              <div>© 2026 Pronnect Collaboration Hub. Built for builders with zero bloat.</div>
+              <div style="display:flex; gap:14px;">
+                <a href="javascript:void(0)" onclick="showCommunityGuidelinesModal()" style="color:var(--c-sand); text-decoration:underline;">Guidelines</a>
+                <a href="javascript:void(0)" onclick="triggerGoogleSignIn()" style="color:var(--c-cream); font-weight:bold;">⚡ Fast Login</a>
+              </div>
+            </div>
+          </footer>
         </div>
       `;
+      filterLandingPortfolio('all');
     }
 
     // --- 1. EXPLORE PROJECTS ---

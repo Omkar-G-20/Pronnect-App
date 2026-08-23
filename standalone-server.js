@@ -655,6 +655,28 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // Serve Static Assets from /public or /images
+  if (pathname.startsWith("/public/") || pathname.startsWith("/images/")) {
+    const relPath = pathname.startsWith("/public/") ? pathname.replace(/^\/public\//, "") : pathname.replace(/^\//, "");
+    const filePath = path.join(__dirname, "public", relPath);
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      const ext = path.extname(filePath).toLowerCase();
+      const mimeTypes = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".svg": "image/svg+xml",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+        ".ico": "image/x-icon",
+        ".css": "text/css",
+        ".js": "application/javascript"
+      };
+      res.writeHead(200, { "Content-Type": mimeTypes[ext] || "application/octet-stream" });
+      return res.end(fs.readFileSync(filePath));
+    }
+  }
+
   // Serve Clean Standalone HTML App
   res.writeHead(200, {
     "Content-Type": "text/html; charset=utf-8",
