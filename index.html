@@ -650,68 +650,93 @@
         return;
       }
 
-      const existing = store.users.find(u => u.email && u.email.toLowerCase() === email);
-      if (existing) {
-        showAuthError("An account with this email already exists. Please log in!");
-        return;
-      }
-
       const githubId = rawGithub.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '');
       const githubUrl = githubId ? `https://github.com/${githubId}` : '';
 
-      const newUser = {
-        id: "u_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
-        name: name,
-        email: email,
-        school: school,
-        githubId: githubId,
-        githubUrl: githubUrl,
-        password: password,
-        headline: `Builder & Student at ${school}`,
-        bio: "Collaborating and building innovative projects with the Pronnect community.",
-        skills: ["Full-Stack", "AI/ML"],
-        picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`,
-        createdAt: new Date().toISOString()
-      };
+      let user = store.users.find(u => u.email && u.email.toLowerCase() === email);
+      if (user) {
+        // Account already exists: update info & password and log in
+        user.password = password;
+        user.name = name;
+        user.school = school;
+        if (githubId) { user.githubId = githubId; user.githubUrl = githubUrl; }
+      } else {
+        user = {
+          id: "u_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          name: name,
+          email: email,
+          school: school,
+          githubId: githubId,
+          githubUrl: githubUrl,
+          password: password,
+          headline: `Builder & Student at ${school}`,
+          bio: "Collaborating and building innovative projects with the Pronnect community.",
+          skills: ["Full-Stack", "AI/ML"],
+          picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`,
+          createdAt: new Date().toISOString()
+        };
+        store.users.push(user);
+      }
 
-      store.users.push(newUser);
-      currentUser = newUser;
+      currentUser = user;
       localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
       store.presence[currentUser.id] = Date.now();
       saveState();
       closeModal();
-      showToast(`🎉 Account created successfully! Welcome, ${currentUser.name}!`);
+      showToast(`🎉 Welcome to Pronnect, ${currentUser.name}!`);
       renderNavAuth();
       navigate('explore');
     }
 
-    // --- STEP 2: DIRECT LOGIN (NO CODE VERIFICATION) ---
+    // --- STEP 2: DIRECT LOGIN (SEAMLESS AUTO-PROVISIONING & AUTH) ---
     function handleDirectLogin(e) {
       e.preventDefault();
       clearAuthError();
 
-      const input = document.getElementById('auth-login-email').value.trim().toLowerCase();
+      const rawInput = document.getElementById('auth-login-email').value.trim();
+      const input = rawInput.toLowerCase();
       const password = document.getElementById('auth-login-password').value;
 
-      if (!input || !password) {
+      if (!rawInput || !password) {
         showAuthError("Please enter both email/username and password.");
         return;
       }
 
-      const user = store.users.find(u => 
+      let user = store.users.find(u => 
         (u.email && u.email.toLowerCase() === input) || 
         (u.name && u.name.toLowerCase() === input) ||
         (u.githubId && u.githubId.toLowerCase() === input)
       );
 
       if (!user) {
-        showAuthError("No account found with this email or username. Please switch to '1. Create Account' above to sign up in 5 seconds!");
-        return;
-      }
+        // Auto-provision user account seamlessly if typed in Login tab
+        const defaultName = rawInput.includes('@') 
+          ? rawInput.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+          : rawInput;
 
-      if (user.password && user.password !== password) {
-        showAuthError("Incorrect password. Please verify and try again.");
-        return;
+        user = {
+          id: "u_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          name: defaultName,
+          email: rawInput.includes('@') ? input : `${input}@pronnect.dev`,
+          school: "Pronnect Collaborator",
+          githubId: "",
+          githubUrl: "",
+          password: password,
+          headline: "Builder & Collaborator",
+          bio: "Collaborating and building innovative projects with the Pronnect community.",
+          skills: ["Full-Stack", "AI/ML"],
+          picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(defaultName)}`,
+          createdAt: new Date().toISOString()
+        };
+        store.users.push(user);
+      } else {
+        if (user.password && user.password !== password) {
+          showAuthError("Incorrect password. Please verify and try again.");
+          return;
+        }
+        if (!user.password) {
+          user.password = password;
+        }
       }
 
       currentUser = user;
