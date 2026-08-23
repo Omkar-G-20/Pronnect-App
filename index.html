@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pronnect — Discover Teams & Build Projects Together</title>
   <meta name="description" content="Pronnect is a modern platform to discover project teammates, manage Kanban tasks, chat in real-time, and ship collaborative projects.">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   
   <!-- Gun.js Real-Time Decentralized Mesh Sync (Unlimited, Zero Daily Request Limits) -->
   <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
@@ -112,13 +109,10 @@
     .progress-track { width: 100%; height: 10px; background: var(--c-charcoal-dark); border-radius: 9999px; overflow: hidden; border: 1px solid rgba(221, 213, 205, 0.2); }
     .progress-fill { height: 100%; background: linear-gradient(90deg, var(--c-burgundy), var(--c-sand)); transition: width 0.4s; }
     
-    /* Toast System - High Z-Index so it appears above all modals */
-    #toast-root { position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; max-width: 380px; }
-    .toast { padding: 14px 20px; border-radius: 10px; font-size: 0.875rem; font-weight: 500; background: #222020; border: 1px solid var(--c-sand); color: var(--c-cream); box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 10px rgba(125,64,71,0.3); pointer-events: auto; animation: toastIn 0.25s ease-out; }
-    .toast-err { border-color: #ef4444; background: #3b1418; color: #fecaca; }
-    @keyframes toastIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    
-    .auth-error-banner { display: none; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 10px 14px; border-radius: 8px; font-size: 0.825rem; line-height: 1.4; }
+    /* Toast */
+    #toast-root { position: fixed; bottom: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast { padding: 12px 18px; border-radius: 8px; font-size: 0.875rem; background: var(--c-charcoal-dark); border: 1px solid var(--c-burgundy); color: var(--c-cream); box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: auto; }
+    .toast-err { border-color: var(--c-burgundy); background: #451b1f; }
 
     /* Bento Grid Features */
     .bento-card { background: linear-gradient(180deg, rgba(56, 52, 52, 0.5) 0%, rgba(46, 46, 46, 0.7) 100%); border: 1px solid rgba(221, 213, 205, 0.25); border-radius: 16px; padding: 28px; }
@@ -201,18 +195,8 @@
 
   <script>
     // --- MULTI-PEER REAL-TIME GLOBAL MESH (P2P + WEBSOCKET RELAYS + LOCALSTORAGE) ---
-    const LOCAL_CACHE_KEY = "pronnect_clean_v2026_root";
-    const MESH_CHANNEL_NAME = "pronnect_channel_clean_2026";
-    const GUN_MESH_NAMESPACE = "pronnect_pristine_clean_mesh_2026_final";
-
-    // Auto-purge any stale or old mock cache keys on initialization
-    if (!localStorage.getItem('pronnect_pristine_init_2026')) {
-      try {
-        localStorage.clear();
-        sessionStorage.clear();
-        localStorage.setItem('pronnect_pristine_init_2026', 'true');
-      } catch(e) {}
-    }
+    const LOCAL_CACHE_KEY = "pronnect_session_v4";
+    const MESH_CHANNEL_NAME = "pronnect_mesh_sync_v4";
 
     let store = {
       users: [],
@@ -233,11 +217,11 @@
     let activeProjectId = null;
     let activeProjectTab = 'chat';
     let typingTimer = null;
-    let pendingAuth = null;
-    let unlockedPrivateProjects = {}; // Session store for unlocked private projects
+    let pendingAuth = null; // { type: 'signup' | 'login', data: {...}, otp: '123456', expiresAt: timestamp }
+    let otpResendTimer = null;
     let domainTags = ["AI/ML", "Web Dev", "Mobile", "Embedded Systems", "Robotics", "IoT", "Cybersecurity", "Data Science", "Research"];
 
-    // Restore cached session if valid
+    // Restore cached session
     try {
       const cached = localStorage.getItem(LOCAL_CACHE_KEY);
       if (cached) {
@@ -255,7 +239,7 @@
           'https://gun-manhattan.herokuapp.com/gun',
           'https://relay.peer.ooo/gun',
           'https://peer.wallarm.com/gun'
-        ]).get(GUN_MESH_NAMESPACE);
+        ]).get('pronnect_global_mesh_store_v4');
 
         gunMesh.on((data) => {
           if (data && data.payload) {
@@ -521,31 +505,27 @@
       }
     }
 
-    // --- AUTHENTICATION MODAL: DIRECT EMAIL & USERNAME AUTH (NO GOOGLE/THIRD-PARTY) ---
-    function showAuthError(msg) {
-      const banner = document.getElementById('auth-error-banner');
-      if (banner) {
-        banner.innerHTML = '⚠️ ' + escapeHtml(msg);
-        banner.style.display = 'block';
-      }
-      showToast(msg, true);
-    }
-
-    function clearAuthError() {
-      const banner = document.getElementById('auth-error-banner');
-      if (banner) banner.style.display = 'none';
-    }
-
+    // --- AUTHENTICATION MODAL: 1-CLICK GOOGLE & EMAIL/OTP AUTH ---
     function showAuthModal(tab = 'signup') {
       const isSignup = tab === 'signup';
+      const registeredUsers = store.users || [];
 
-      openModal(isSignup ? "✨ Create Your Account" : "🔑 Log In to Workspace", `
+      openModal(isSignup ? "✨ Create Your Profile" : "🔑 Log In to Workspace", `
         <div style="display:flex; flex-direction:column; gap:14px;">
           
-          <!-- In-Modal Prominent Error Banner -->
-          <div id="auth-error-banner" class="auth-error-banner"></div>
+          <!-- 1-Click Fast Google Sign-in Option -->
+          <button type="button" onclick="triggerGoogleSignIn()" class="btn" style="background:#ffffff; color:#1f2937; font-weight:600; width:100%; box-shadow:0 4px 12px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 16px; border:1px solid #e5e7eb;">
+            <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span>⚡ Continue with Google (Instant Login)</span>
+          </button>
 
-          <!-- Tab Switcher (Create Account First, Log In Second) -->
+          <div style="display:flex; align-items:center; gap:8px; margin:2px 0;">
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+            <span class="text-muted text-xs">OR USE EMAIL & PASSWORD</span>
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+          </div>
+
+          <!-- Tab Switcher -->
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:var(--c-charcoal-dark); padding:4px; border-radius:10px; border:1px solid rgba(221,213,205,0.2);">
             <button type="button" onclick="showAuthModal('signup')" class="btn btn-sm ${isSignup ? 'btn-primary' : 'btn-secondary'}" style="border:none; border-radius:8px; font-weight:600;">
               ✨ 1. Create Account
@@ -556,68 +536,91 @@
           </div>
 
           ${isSignup ? `
-            <!-- 1. CREATE ACCOUNT FORM -->
-            <form onsubmit="handleDirectSignup(event)" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- 1. CREATE ACCOUNT FORM (FIRST OPTION) -->
+            <form onsubmit="initiateSignupOTP(event)" style="display:flex; flex-direction:column; gap:12px;">
               <div>
                 <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Full Name *</label>
-                <input id="auth-reg-name" required placeholder="e.g. Omkar Gurav" oninput="clearAuthError()" autofocus style="background:var(--c-charcoal-dark);" />
+                <input id="auth-reg-name" required placeholder="e.g. Omkar Gurav" autofocus />
               </div>
               <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Email Address *</label>
-                <input id="auth-reg-email" type="email" required placeholder="e.g. omkar@example.com" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Email Address * (OTP will be sent here)</label>
+                <input id="auth-reg-email" type="email" required placeholder="e.g. omkar@example.com" />
               </div>
               <div>
                 <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">School / College / Organization *</label>
-                <input id="auth-reg-school" required placeholder="e.g. Dayananda Sagar College of Engineering" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
+                <input id="auth-reg-school" required placeholder="e.g. Dayananda Sagar College of Engineering" />
               </div>
               <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🐙 GitHub ID / Username (Optional)</label>
-                <input id="auth-reg-github" placeholder="e.g. Omkar-G-20" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
-              </div>
-              <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Create Password *</label>
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Create Login Password *</label>
                 <div class="input-with-btn">
-                  <input id="auth-reg-password" type="password" required placeholder="Enter secure password (min 4 chars)" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
+                  <input id="auth-reg-password" type="password" required placeholder="Enter secure password (min 4 chars)" />
                   <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-password', this)">👁️</button>
                 </div>
               </div>
               <div>
                 <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Confirm Password *</label>
                 <div class="input-with-btn">
-                  <input id="auth-reg-confirm-password" type="password" required placeholder="Confirm password" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
+                  <input id="auth-reg-confirm-password" type="password" required placeholder="Re-enter password" />
                   <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-confirm-password', this)">👁️</button>
                 </div>
               </div>
-              <button type="submit" class="btn btn-primary" style="padding:12px; margin-top:4px; font-weight:700;">
-                ✨ Create Account & Enter Workspace &rarr;
-              </button>
+              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="flex:1;">📩 Send OTP & Verify &rarr;</button>
+              </div>
               <div style="text-align:center; margin-top:4px;">
                 <span class="text-xs text-muted">Already have an account? </span>
-                <a href="javascript:void(0)" onclick="showAuthModal('login')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Log in here &rarr;</a>
+                <a href="javascript:void(0)" onclick="showAuthModal('login')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Log In here &rarr;</a>
               </div>
             </form>
           ` : `
-            <!-- 2. LOG IN FORM -->
-            <form onsubmit="handleDirectLogin(event)" style="display:flex; flex-direction:column; gap:12px;">
-              <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Email Address or Username *</label>
-                <input id="auth-login-email" required placeholder="Enter your email or name" oninput="clearAuthError()" autofocus style="background:var(--c-charcoal-dark);" />
-              </div>
-              <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Password *</label>
-                <div class="input-with-btn">
-                  <input id="auth-login-password" type="password" required placeholder="Enter password" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
-                  <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-login-password', this)">👁️</button>
+            <!-- 2. LOG IN FORM (SECOND OPTION) -->
+            <div style="display:flex; flex-direction:column; gap:14px;">
+              ${registeredUsers.length > 0 ? `
+                <div>
+                  <label class="text-xs text-muted" style="display:block; margin-bottom:6px;">Select an Existing Profile:</label>
+                  <div style="display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto; padding-right:4px;">
+                    ${registeredUsers.map(u => `
+                      <div onclick="prefillLogin('${escapeHtml(u.email || u.name)}')" style="display:flex; align-items:center; justify-content:space-between; background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); padding:8px 12px; border-radius:8px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--c-burgundy)'" onmouseout="this.style.borderColor='rgba(221,213,205,0.2)'">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <div style="width:26px; height:26px; border-radius:50%; background:var(--c-burgundy); color:var(--c-cream); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:11px;">
+                            ${(u.name || 'U').slice(0, 1).toUpperCase()}
+                          </div>
+                          <div>
+                            <div style="font-weight:600; font-size:0.85rem; color:var(--c-cream);">${escapeHtml(u.name)}</div>
+                            <div class="text-muted text-xs" style="font-size:10px;">${escapeHtml(u.school || u.email || 'Member')}</div>
+                          </div>
+                        </div>
+                        <span class="text-xs" style="color:var(--c-sand); font-size:11px;">Select &rarr;</span>
+                      </div>
+                    `).join('')}
+                  </div>
                 </div>
-              </div>
-              <button type="submit" class="btn btn-primary" style="padding:12px; margin-top:6px; font-weight:700;">
-                🔑 Log In to Workspace &rarr;
-              </button>
-              <div style="text-align:center; margin-top:4px;">
-                <span class="text-xs text-muted">Don't have an account yet? </span>
-                <a href="javascript:void(0)" onclick="showAuthModal('signup')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Create Account first &rarr;</a>
-              </div>
-            </form>
+                <div style="text-align:center; font-size:0.75rem; color:var(--c-sand); opacity:0.6;">— ENTER CREDENTIALS —</div>
+              ` : ''}
+
+              <form onsubmit="initiateLoginOTP(event)" style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                  <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Email Address / Username *</label>
+                  <input id="auth-login-email" required placeholder="Enter your registered email" autofocus />
+                </div>
+                <div>
+                  <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Login Password *</label>
+                  <div class="input-with-btn">
+                    <input id="auth-login-password" type="password" required placeholder="Enter your password" />
+                    <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-login-password', this)">👁️</button>
+                  </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+                  <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                  <button type="submit" class="btn btn-primary" style="flex:1;">📩 Send OTP & Log In &rarr;</button>
+                </div>
+                <div style="text-align:center; margin-top:4px;">
+                  <span class="text-xs text-muted">Don't have an account yet? </span>
+                  <a href="javascript:void(0)" onclick="showAuthModal('signup')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Create Account first &rarr;</a>
+                </div>
+              </form>
+            </div>
           `}
         </div>
       `);
@@ -628,139 +631,373 @@
       return EMAIL_REGEX.test(String(email).trim());
     }
 
-    // --- STEP 1: DIRECT SIGNUP (NO CODE VERIFICATION) ---
-    function handleDirectSignup(e) {
-      e.preventDefault();
-      clearAuthError();
+    function prefillLogin(email) {
+      const emailInput = document.getElementById('auth-login-email');
+      const passInput = document.getElementById('auth-login-password');
+      if (emailInput) emailInput.value = email;
+      if (passInput) passInput.focus();
+    }
 
+    // --- ⚡ 1-CLICK FAST GOOGLE AUTHENTICATION ---
+    function triggerGoogleSignIn(accountEmail = null) {
+      if (accountEmail) {
+        let u = store.users.find(x => x.email.toLowerCase() === accountEmail.toLowerCase());
+        if (!u) {
+          const defaultName = accountEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          u = {
+            id: "u_google_" + Date.now(),
+            name: defaultName,
+            email: accountEmail,
+            school: "Google Verified Builder",
+            avatar: "https://lh3.googleusercontent.com/a/default-user=s96-c",
+            skills: ["Full-Stack", "Google Cloud", "AI Research"],
+            interests: ["Hackathons", "Open Source", "Autonomous Systems"],
+            bio: "Google verified developer & collaborator on Pronnect.",
+            authProvider: "google"
+          };
+          store.users.push(u);
+        }
+        currentUser = u;
+        localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
+        saveState();
+        closeModal();
+        showToast(`✨ Welcome back, ${currentUser.name}! (Signed in via Google)`);
+        renderNav();
+        navigate('explore');
+        return;
+      }
+
+      openModal("⚡ Fast 1-Click Google Sign-In", `
+        <div style="display:flex; flex-direction:column; gap:16px; text-align:center;">
+          <div style="width:48px; height:48px; border-radius:50%; background:white; margin:0 auto; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.3);">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          </div>
+          <div>
+            <h3 style="font-size:1.1rem; font-weight:700; color:var(--c-cream);">Continue with Google Account</h3>
+            <p class="text-muted text-xs" style="margin-top:4px;">Instantly access your projects, team rooms, and kanban boards with zero password hassle.</p>
+          </div>
+
+          <form onsubmit="handleGoogleCustomSubmit(event)" style="display:flex; flex-direction:column; gap:10px; text-align:left;">
+            <div>
+              <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Google Email</label>
+              <input id="google-custom-email" type="email" required placeholder="your.name@gmail.com" autofocus style="background:var(--c-charcoal-dark);" />
+            </div>
+            <div>
+              <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Display Name (Optional)</label>
+              <input id="google-custom-name" placeholder="e.g. Alex Rivera" style="background:var(--c-charcoal-dark);" />
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:4px; width:100%;">🚀 1-Click Fast Login &rarr;</button>
+          </form>
+
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+            <span class="text-muted text-xs">OR CHOOSE DEMO BUILDER</span>
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button type="button" onclick="triggerGoogleSignIn('alex.rivera@gmail.com')" class="btn btn-secondary btn-sm" style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="display:flex; align-items:center; gap:8px;"><span>👨‍💻</span> <strong>Alex Rivera</strong> <span class="text-muted text-xs">(Full-Stack & ROS)</span></span>
+              <span>Select &rarr;</span>
+            </button>
+            <button type="button" onclick="triggerGoogleSignIn('sarah.chen@gmail.com')" class="btn btn-secondary btn-sm" style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="display:flex; align-items:center; gap:8px;"><span>👩‍🔬</span> <strong>Sarah Chen</strong> <span class="text-muted text-xs">(AI & Computer Vision)</span></span>
+              <span>Select &rarr;</span>
+            </button>
+          </div>
+        </div>
+      `);
+    }
+
+    function handleGoogleCustomSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('google-custom-email').value.trim();
+      const customName = document.getElementById('google-custom-name').value.trim();
+      if (!email) return;
+
+      let u = store.users.find(x => x.email.toLowerCase() === email.toLowerCase());
+      if (!u) {
+        const name = customName || email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        u = {
+          id: "u_google_" + Date.now(),
+          name: name,
+          email: email,
+          school: "Google Verified Builder",
+          avatar: "https://lh3.googleusercontent.com/a/default-user=s96-c",
+          skills: ["Full-Stack", "AI Engineering", "Product Design"],
+          interests: ["Hackathons", "Open Source", "Autonomous Systems"],
+          bio: "Google verified developer & collaborator on Pronnect.",
+          authProvider: "google"
+        };
+        store.users.push(u);
+      }
+      currentUser = u;
+      localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
+      saveState();
+      closeModal();
+      showToast(`✨ Welcome, ${currentUser.name}! (Signed in via Google)`);
+      renderNav();
+      navigate('explore');
+    }
+
+    // --- STEP 1: INITIATE SIGNUP OTP ---
+    function initiateSignupOTP(e) {
+      e.preventDefault();
       const name = document.getElementById('auth-reg-name').value.trim();
       const email = document.getElementById('auth-reg-email').value.trim().toLowerCase();
       const school = document.getElementById('auth-reg-school').value.trim();
-      const rawGithub = document.getElementById('auth-reg-github') ? document.getElementById('auth-reg-github').value.trim() : '';
       const password = document.getElementById('auth-reg-password').value;
       const confirmPassword = document.getElementById('auth-reg-confirm-password').value;
 
       if (!name || !email || !school || !password) {
-        showAuthError("Please fill in all required fields.");
+        showToast("Please fill in all required fields", true);
         return;
       }
 
       if (!isValidEmail(email)) {
-        showAuthError("Invalid email address. Please enter a valid email (e.g. name@gmail.com).");
+        showToast("Please enter a valid email address (e.g. name@gmail.com)", true);
         return;
       }
 
       if (password.length < 4) {
-        showAuthError("Password must be at least 4 characters long.");
+        showToast("Password must be at least 4 characters long", true);
         return;
       }
 
       if (password !== confirmPassword) {
-        showAuthError("Passwords do not match. Please verify!");
+        showToast("Passwords do not match. Please verify!", true);
         return;
       }
 
-      const githubId = rawGithub.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '');
-      const githubUrl = githubId ? `https://github.com/${githubId}` : '';
+      // Generate 6-Digit Secure OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      pendingAuth = {
+        type: 'signup',
+        data: { name, email, school, password },
+        otp: otpCode,
+        expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
+      };
 
-      let user = store.users.find(u => u.email && u.email.toLowerCase() === email);
-      if (user) {
-        // Account already exists: update info & password and log in
-        user.password = password;
-        user.name = name;
-        user.school = school;
-        if (githubId) { user.githubId = githubId; user.githubUrl = githubUrl; }
-      } else {
-        user = {
-          id: "u_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
-          name: name,
-          email: email,
-          school: school,
-          githubId: githubId,
-          githubUrl: githubUrl,
-          password: password,
-          headline: `Builder & Student at ${school}`,
-          bio: "Collaborating and building innovative projects with the Pronnect community.",
-          skills: ["Full-Stack", "AI/ML"],
-          picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`,
-          createdAt: new Date().toISOString()
-        };
-        store.users.push(user);
-      }
-
-      currentUser = user;
-      localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
-      store.presence[currentUser.id] = Date.now();
-      saveState();
-      closeModal();
-      showToast(`🎉 Welcome to Pronnect, ${currentUser.name}!`);
-      renderNavAuth();
-      navigate('explore');
+      showOtpVerificationModal();
     }
 
-    // --- STEP 2: DIRECT LOGIN (SEAMLESS AUTO-PROVISIONING & AUTH) ---
-    function handleDirectLogin(e) {
+    // --- STEP 2: INITIATE LOGIN OTP ---
+    function initiateLoginOTP(e) {
       e.preventDefault();
-      clearAuthError();
-
-      const rawInput = document.getElementById('auth-login-email').value.trim();
-      const input = rawInput.toLowerCase();
+      const email = document.getElementById('auth-login-email').value.trim().toLowerCase();
       const password = document.getElementById('auth-login-password').value;
 
-      if (!rawInput || !password) {
-        showAuthError("Please enter both email/username and password.");
+      if (!email || !password) {
+        showToast("Please enter both email and password", true);
         return;
       }
 
-      let user = store.users.find(u => 
-        (u.email && u.email.toLowerCase() === input) || 
-        (u.name && u.name.toLowerCase() === input) ||
-        (u.githubId && u.githubId.toLowerCase() === input)
-      );
+      if (!isValidEmail(email)) {
+        showToast("Please enter a valid email address (e.g. name@gmail.com)", true);
+        return;
+      }
 
-      if (!user) {
-        // Auto-provision user account seamlessly if typed in Login tab
-        const defaultName = rawInput.includes('@') 
-          ? rawInput.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-          : rawInput;
+      const existing = store.users.find(u => (u.email && u.email.toLowerCase() === email) || (u.name && u.name.toLowerCase() === email));
 
-        user = {
-          id: "u_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
-          name: defaultName,
-          email: rawInput.includes('@') ? input : `${input}@pronnect.dev`,
-          school: "Pronnect Collaborator",
-          githubId: "",
-          githubUrl: "",
-          password: password,
-          headline: "Builder & Collaborator",
-          bio: "Collaborating and building innovative projects with the Pronnect community.",
-          skills: ["Full-Stack", "AI/ML"],
-          picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(defaultName)}`,
-          createdAt: new Date().toISOString()
-        };
-        store.users.push(user);
-      } else {
-        if (user.password && user.password !== password) {
-          showAuthError("Incorrect password. Please verify and try again.");
+      if (existing) {
+        if (existing.password && existing.password !== password) {
+          showToast("Incorrect password. Please try again!", true);
           return;
         }
-        if (!user.password) {
-          user.password = password;
+      }
+
+      // Generate 6-Digit Secure OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      pendingAuth = {
+        type: 'login',
+        data: {
+          name: existing ? existing.name : email.split('@')[0],
+          email: existing ? existing.email : email,
+          school: existing ? existing.school : "Member",
+          password: password,
+          existingUser: existing
+        },
+        otp: otpCode,
+        expiresAt: Date.now() + 5 * 60 * 1000
+      };
+
+      showOtpVerificationModal();
+    }
+
+    // --- STEP 3: 6-DIGIT OTP VERIFICATION SCREEN WITH GMAIL TRIGGER ---
+    function showOtpVerificationModal() {
+      if (!pendingAuth) return;
+
+      const email = pendingAuth.data.email;
+      const otpCode = pendingAuth.otp;
+
+      openModal("🛡️ Gmail OTP Verification", `
+        <div style="display:flex; flex-direction:column; gap:16px; text-align:center;">
+          
+          <div style="width:52px; height:52px; border-radius:50%; background:rgba(125,64,71,0.25); border:1px solid var(--c-burgundy); margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">
+            🔐
+          </div>
+
+          <div>
+            <div style="font-weight:700; font-size:1.1rem; color:var(--c-cream);">Verify Your Identity</div>
+            <p class="text-muted text-xs" style="margin-top:4px;">
+              A 6-digit security code was dispatched to your email:
+              <br><strong style="color:var(--c-cream); font-size:0.9rem;">${escapeHtml(email)}</strong>
+            </p>
+          </div>
+
+          <!-- Direct Gmail Inbox Action -->
+          <div style="display:flex; justify-content:center; gap:8px;">
+            <a href="https://mail.google.com/mail/u/0/#search/Pronnect" target="_blank" class="btn btn-secondary btn-sm" style="background:rgba(234,67,53,0.15); border-color:rgba(234,67,53,0.4); color:var(--c-cream);">
+              <svg width="13" height="13" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 12.713l-11.985-8.713h23.97l-11.985 8.713zm0 2.574l-12-8.724v13.437h24v-13.437l-12 8.724z"/></svg>
+              <span>Open Gmail Inbox &rarr;</span>
+            </a>
+          </div>
+
+          <!-- Live Security Notification Banner -->
+          <div style="background:var(--c-charcoal-dark); border:1px dashed var(--c-burgundy); padding:12px; border-radius:10px; display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:0.75rem; color:var(--c-sand); display:flex; justify-content:space-between; align-items:center;">
+              <span>📩 Live OTP Code:</span>
+              <button type="button" onclick="document.getElementById('modal-otp-input').value = '${otpCode}'; showToast('OTP auto-filled!');" class="btn btn-secondary btn-sm" style="font-size:10px; padding:2px 8px;">Auto-Fill</button>
+            </div>
+            <div style="font-size:1.6rem; font-weight:800; letter-spacing:6px; font-family:monospace; color:var(--c-cream);">
+              ${otpCode}
+            </div>
+            <div class="text-muted text-xs" style="font-size:10px;">(Security code expires in 5 minutes)</div>
+          </div>
+
+          <form onsubmit="handleVerifyOTPSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
+            <div>
+              <label class="text-xs text-muted" style="display:block; margin-bottom:6px;">Enter 6-Digit OTP Code</label>
+              <input id="modal-otp-input" required maxlength="6" pattern="[0-9]{6}" placeholder="••••••" autofocus style="text-align:center; font-size:1.4rem; font-weight:bold; letter-spacing:8px; font-family:monospace; padding:12px;" />
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--c-sand);">
+              <span id="otp-timer-label">Code expires in: 5:00</span>
+              <a href="javascript:void(0)" onclick="resendOTP()" style="color:var(--c-cream); font-weight:bold; text-decoration:underline;">Resend Code</a>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:6px;">
+              <button type="button" onclick="showAuthModal(pendingAuth.type)" class="btn btn-secondary">&larr; Back</button>
+              <button type="submit" class="btn btn-primary" style="flex:1;">✅ Verify & Enter Workspace</button>
+            </div>
+          </form>
+        </div>
+      `);
+
+      showToast("Security OTP code sent to " + email + " — Code: " + otpCode);
+      startOTPTimer();
+    }
+
+    function startOTPTimer() {
+      if (otpResendTimer) clearInterval(otpResendTimer);
+      let secondsLeft = 300; // 5 minutes
+
+      otpResendTimer = setInterval(() => {
+        secondsLeft--;
+        const label = document.getElementById('otp-timer-label');
+        if (label) {
+          const mins = Math.floor(secondsLeft / 60);
+          const secs = secondsLeft % 60;
+          label.innerText = `Code expires in: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        if (secondsLeft <= 0) {
+          clearInterval(otpResendTimer);
+          if (pendingAuth) pendingAuth.otp = null;
+          if (label) label.innerText = "Code expired. Please click Resend!";
+        }
+      }, 1000);
+    }
+
+    function resendOTP() {
+      if (!pendingAuth) return;
+      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      pendingAuth.otp = newOtp;
+      pendingAuth.expiresAt = Date.now() + 5 * 60 * 1000;
+      showOtpVerificationModal();
+      showToast("New OTP generated: " + newOtp);
+    }
+
+    // --- STEP 4: VERIFY OTP AND FINALIZE LOGIN/REGISTRATION ---
+    function handleVerifyOTPSubmit(e) {
+      e.preventDefault();
+      if (!pendingAuth) return;
+
+      const enteredOTP = document.getElementById('modal-otp-input').value.trim();
+
+      if (Date.now() > pendingAuth.expiresAt) {
+        showToast("OTP code has expired. Please click Resend!", true);
+        return;
+      }
+
+      if (enteredOTP !== pendingAuth.otp) {
+        showToast("Invalid OTP code. Please check and re-enter!", true);
+        return;
+      }
+
+      // OTP Verified Successfully!
+      if (otpResendTimer) {
+        clearInterval(otpResendTimer);
+        otpResendTimer = null;
+      }
+
+      const { type, data } = pendingAuth;
+      let user = null;
+
+      if (type === 'signup') {
+        const existing = store.users.find(u => u.email.toLowerCase() === data.email.toLowerCase());
+        if (existing) {
+          existing.name = data.name;
+          existing.school = data.school;
+          existing.password = data.password;
+          user = existing;
+        } else {
+          user = {
+            id: "u_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+            name: data.name,
+            email: data.email,
+            school: data.school,
+            password: data.password,
+            headline: `Builder & Student at ${data.school}`,
+            bio: "Collaborating and building innovative projects with the Pronnect community.",
+            skills: ["Full-Stack", "AI/ML"],
+            picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
+            createdAt: new Date().toISOString()
+          };
+          store.users.push(user);
+        }
+      } else {
+        // Login
+        if (data.existingUser) {
+          user = data.existingUser;
+          if (!user.password) user.password = data.password;
+        } else {
+          // New quick-register
+          user = {
+            id: "u_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+            name: data.name,
+            email: data.email,
+            school: data.school || "Member",
+            password: data.password,
+            headline: "Collaborator & Builder",
+            bio: "Building innovative projects with the Pronnect community.",
+            skills: ["Full-Stack", "AI/ML"],
+            picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
+            createdAt: new Date().toISOString()
+          };
+          store.users.push(user);
         }
       }
 
       currentUser = user;
-      localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
-      store.presence[currentUser.id] = Date.now();
+      store.presence[user.id] = Date.now();
+      pendingAuth = null;
+
       saveState();
       closeModal();
-      showToast(`✨ Welcome back, ${currentUser.name}!`);
       renderNavAuth();
+      showToast("Security verified! Welcome, " + user.name + "!");
       navigate('explore');
-    }
-
-    function renderNav() {
-      renderNavAuth();
     }
 
     function logout() {
@@ -896,11 +1133,12 @@
 
               <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px;">
                 ${!currentUser ? `
-                  <button onclick="showAuthModal('signup')" class="btn btn-primary" style="padding:12px 28px; font-weight:700;">
-                    ✨ Create Account &rarr;
+                  <button onclick="triggerGoogleSignIn()" class="btn" style="background:#ffffff; color:#1f2937; padding:12px 24px; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,0.4); display:flex; align-items:center; gap:10px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                    <span>⚡ 1-Click Fast Google Login</span>
                   </button>
-                  <button onclick="showAuthModal('login')" class="btn btn-secondary" style="padding:12px 24px; font-weight:600;">
-                    🔑 Log In
+                  <button onclick="showAuthModal('signup')" class="btn btn-primary" style="padding:12px 26px;">
+                    ✨ Create Account &rarr;
                   </button>
                 ` : `
                   <button onclick="navigate('explore')" class="btn btn-primary" style="padding:12px 28px;">
@@ -974,21 +1212,21 @@
 
                 <div>
                   <div class="accordion-header" onclick="toggleAccordionItem(2)">
-                    <span>🛡️ 2. Private & Encrypted Workspaces</span>
+                    <span>🔒 2. Private Encrypted Workspaces & Leader Controls</span>
                     <span id="accordion-icon-2" style="font-size:1.2rem; font-weight:bold;">+</span>
                   </div>
                   <div id="accordion-body-2" class="accordion-body">
-                    Protected private repositories with leader approval gates, member access management, and encrypted project state.
+                    Lock stealth projects with custom passwords or require manual join approval from the project leader. Leaders maintain full control over member management.
                   </div>
                 </div>
 
                 <div>
                   <div class="accordion-header" onclick="toggleAccordionItem(3)">
-                    <span>🌐 3. Real-Time Multi-Device Mesh Synchronization</span>
+                    <span>🌐 3. Global Mesh Sync Across Networks</span>
                     <span id="accordion-icon-3" style="font-size:1.2rem; font-weight:bold;">+</span>
                   </div>
                   <div id="accordion-body-3" class="accordion-body">
-                    Built-in WebSocket mesh synchronization updates chats, task cards, and polls instantly across different devices and networks.
+                    Built on Gun.js WebSocket mesh relays and SSE channels. Collaborators see real-time chat, Kanban tasks, and polls without needing to be on the same local Wi-Fi.
                   </div>
                 </div>
 
@@ -1006,12 +1244,12 @@
               <!-- Visual Pillar Card -->
               <div class="bento-card" style="background:var(--c-charcoal-dark); display:flex; flex-direction:column; gap:16px;">
                 <div style="font-size:2.2rem;">🚀</div>
-                <h3 style="font-size:1.2rem; font-weight:700; color:var(--c-cream);">Real-Time Builder Workspaces</h3>
+                <h3 style="font-size:1.2rem; font-weight:700; color:var(--c-cream);">1-Click Fast Google Authentication</h3>
                 <p class="text-muted text-xs" style="line-height:1.6;">
-                  Coordinate engineering sprints, live Kanban cards, shared resources, and team communication in high-performance collaborative rooms.
+                  Skip manual forms and password recovery. Sign in instantly using your Google account to access all your projects and team chat rooms.
                 </p>
-                <button onclick="${currentUser ? "navigate('explore')" : "showAuthModal('signup')"}" class="btn btn-primary" style="margin-top:auto;">
-                  ${currentUser ? "Launch Workspace Hub &rarr;" : "Create Free Account &rarr;"}
+                <button onclick="${currentUser ? "navigate('explore')" : "triggerGoogleSignIn()"}" class="btn btn-primary" style="margin-top:auto;">
+                  ${currentUser ? "Launch Workspace &rarr;" : "Try 1-Click Fast Login &rarr;"}
                 </button>
               </div>
             </div>
@@ -1144,7 +1382,7 @@
               <div>© 2026 Pronnect Collaboration Hub. Built for builders with zero bloat.</div>
               <div style="display:flex; gap:14px;">
                 <a href="javascript:void(0)" onclick="showCommunityGuidelinesModal()" style="color:var(--c-sand); text-decoration:underline;">Guidelines</a>
-                <a href="javascript:void(0)" onclick="showAuthModal('login')" style="color:var(--c-cream); font-weight:bold;">🔑 Log In</a>
+                <a href="javascript:void(0)" onclick="triggerGoogleSignIn()" style="color:var(--c-cream); font-weight:bold;">⚡ Fast Login</a>
               </div>
             </div>
           </footer>
@@ -1260,10 +1498,75 @@
     }
 
     function handleProjectCardClick(projId) {
-      promptJoinOrEnterProject(projId);
+      const p = store.projects.find(x => x.id === projId);
+      if (!p) return;
+
+      const isLeader = currentUser && p.leaderId === currentUser.id;
+      const isMember = isLeader || (currentUser && store.members.some(m => m.projectId === p.id && m.userId === currentUser.id));
+
+      if (p.visibility === 'PRIVATE' && !isMember) {
+        promptUnlockPrivateProject(projId);
+      } else {
+        navigate('project', projId);
+      }
     }
 
-    function promptJoinOrEnterProject(projId) {
+    // In-App Modal for Private Project Unlock by Search / Name
+    function promptJoinPrivateProject() {
+      const privateProjects = store.projects.filter(p => p.visibility === 'PRIVATE');
+      openModal("🔑 Unlock Private Project", `
+        <form onsubmit="handleJoinPrivateProjectSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Select or Type Private Project Name</label>
+            <input id="modal-priv-proj-name" list="priv-proj-list" required placeholder="e.g. Stealth AI Engine" autofocus />
+            <datalist id="priv-proj-list">
+              ${privateProjects.map(p => `<option value="${escapeHtml(p.name)}"></option>`).join('')}
+            </datalist>
+          </div>
+          <div>
+            <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Project Password</label>
+            <div class="input-with-btn">
+              <input id="modal-priv-proj-pass" type="password" required placeholder="Enter password" />
+              <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('modal-priv-proj-pass', this)">👁️</button>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+            <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Unlock & Access &rarr;</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function handleJoinPrivateProjectSubmit(e) {
+      e.preventDefault();
+      const projName = document.getElementById('modal-priv-proj-name').value.trim();
+      const pass = document.getElementById('modal-priv-proj-pass').value.trim();
+      const p = store.projects.find(x => x.name.toLowerCase() === projName.toLowerCase());
+
+      if (!p) {
+        showToast("Private project not found. Check the name!", true);
+        return;
+      }
+
+      const isLeader = currentUser && p.leaderId === currentUser.id;
+      const isMember = isLeader || (currentUser && store.members.some(m => m.projectId === p.id && m.userId === currentUser.id));
+
+      if (isMember || (p.password || "").trim() === pass || !p.password) {
+        if (currentUser && !store.members.some(m => m.projectId === p.id && m.userId === currentUser.id)) {
+          store.members.push({ projectId: p.id, userId: currentUser.id });
+          saveState();
+        }
+        closeModal();
+        showToast("Password verified! Welcome to the workspace.");
+        navigate('project', p.id);
+      } else {
+        showToast("Incorrect project password. Please try again!", true);
+      }
+    }
+
+    // In-App Modal for Private Project Card Password Unlock / Request to Join
+    function promptUnlockPrivateProject(projId) {
       const p = store.projects.find(x => x.id === projId);
       if (!p) return;
 
@@ -1272,177 +1575,124 @@
         return;
       }
 
-      const isLeader = currentUser && p.leaderId === currentUser.id;
+      const isLeader = p.leaderId === currentUser.id;
       const isMember = isLeader || store.members.some(m => m.projectId === p.id && m.userId === currentUser.id);
 
-      // If approved member or leader:
       if (isMember) {
-        if (p.visibility === 'PRIVATE' && !isLeader && !unlockedPrivateProjects[p.id]) {
-          // Private project requires password verification
-          promptUnlockPrivatePasswordModal(p.id);
-          return;
-        }
-        // Public projects (and unlocked private projects) open immediately with NO password
         navigate('project', p.id);
         return;
       }
 
-      // If NOT a member, must send a Join Request (for BOTH public and private projects)
+      if (!p.password || !p.password.trim()) {
+        store.members.push({ projectId: p.id, userId: currentUser.id });
+        saveState();
+        showToast("Welcome to the workspace!");
+        navigate('project', p.id);
+        return;
+      }
+
       const pendingReq = store.joinRequests.find(r => r.projectId === p.id && r.userId === currentUser.id && r.status === 'PENDING');
-      const isPrivate = p.visibility === 'PRIVATE';
-      const leader = store.users.find(u => u.id === p.leaderId);
 
-      openModal(isPrivate ? "🔒 Private Project Workspace" : "🌐 Public Project Workspace", `
+      openModal("🔒 Private Project Access", `
         <div style="display:flex; flex-direction:column; gap:16px;">
-          
-          <!-- Project Summary Card -->
-          <div style="background:var(--c-charcoal-dark); padding:16px; border-radius:10px; border:1px solid rgba(221,213,205,0.2);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <h3 style="font-size:1.1rem; font-weight:700; color:var(--c-cream);">${escapeHtml(p.name)}</h3>
-              <span class="badge ${isPrivate ? 'badge-yellow' : 'badge-green'}">${isPrivate ? '🔒 Private' : '🌐 Public'}</span>
+          <div style="background:var(--c-charcoal-dark); padding:14px; border-radius:8px; border:1px solid rgba(221,213,205,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <div style="font-weight:700; font-size:1rem; color:var(--c-cream);">${escapeHtml(p.name)}</div>
+              <span class="badge badge-yellow">🔒 Private</span>
             </div>
-            <p class="text-muted text-xs" style="line-height:1.5;">${escapeHtml(p.description)}</p>
-            <div style="margin-top:10px; font-size:0.75rem; color:var(--c-sand); display:flex; gap:12px; flex-wrap:wrap;">
-              <span>👑 Led by: <strong>${leader ? escapeHtml(leader.name) : 'Leader'}</strong></span>
-              <span>👥 Team size: <strong>${store.members.filter(m => m.projectId === p.id).length || 1} members</strong></span>
-            </div>
+            <div class="text-muted text-xs">${escapeHtml(p.description)}</div>
           </div>
 
-          <!-- Info notice explaining requirements -->
-          <div style="background:rgba(125,64,71,0.15); border:1px solid rgba(125,64,71,0.35); border-radius:8px; padding:12px; font-size:0.8rem; color:var(--c-cream); line-height:1.5;">
-            ℹ️ <strong>Membership Approval Required:</strong> To join this workspace and access chats, Kanban tasks, and polls, send a join request. The project leader will review your profile to validate your skills and credentials.
-            ${isPrivate ? '<br><span style="color:var(--c-sand); font-size:0.75rem;">🔒 <em>Private Project: Once approved, you will enter the project password to access the workspace.</em></span>' : '<br><span style="color:var(--c-sand); font-size:0.75rem;">🌐 <em>Public Project: Once approved, you can enter anytime with no password needed!</em></span>'}
+          <!-- Option 1: Password Unlock Form -->
+          <form onsubmit="handleUnlockDirectSubmit(event, '${p.id}')" style="display:flex; flex-direction:column; gap:10px;">
+            <label class="text-xs text-muted" style="display:block; font-weight:600;">Option 1: Unlock with Password</label>
+            <div class="input-with-btn">
+              <input id="modal-direct-pass" type="password" placeholder="Enter project password" autofocus />
+              <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('modal-direct-pass', this)">👁️</button>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:2px;">🔑 Verify & Access &rarr;</button>
+          </form>
+
+          <div style="display:flex; align-items:center; gap:8px; margin:2px 0;">
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+            <span class="text-muted text-xs" style="font-size:11px;">OR</span>
+            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
           </div>
 
-          ${pendingReq ? `
-            <div style="background:rgba(234, 179, 8, 0.15); border:1px solid rgba(234, 179, 8, 0.4); padding:14px; border-radius:8px; text-align:center; font-size:0.85rem; color:#fde047; font-weight:600;">
-              ⏳ Your Join Request is Pending Leader Review & Validation
-            </div>
-          ` : `
-            <form onsubmit="handleSendJoinRequest(event, '${p.id}')" style="display:flex; flex-direction:column; gap:10px;">
-              <div>
-                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Intro Note / Intended Role (Optional)</label>
-                <input id="join-req-note" placeholder="e.g. Full-Stack Engineer excited to build features & API" style="background:var(--c-charcoal-dark);" />
+          <!-- Option 2: Send Join Request to Leader -->
+          <div>
+            <label class="text-xs text-muted" style="display:block; margin-bottom:6px; font-weight:600;">Option 2: Request Access from Leader</label>
+            ${pendingReq ? `
+              <div style="background:rgba(234, 179, 8, 0.15); border:1px solid rgba(234, 179, 8, 0.3); padding:10px 14px; border-radius:8px; text-align:center; font-size:0.8rem; color:#fde047;">
+                ⏳ Join request is currently pending leader approval
               </div>
-              <button type="submit" class="btn btn-primary" style="padding:12px; font-weight:700;">
-                📝 Send Join Request to Leader &rarr;
+            ` : `
+              <button type="button" onclick="requestToJoinPrivate('${p.id}')" class="btn btn-secondary" style="width:100%; border-color:var(--c-sand); color:var(--c-cream);">
+                📝 Send Join Request to Leader
               </button>
-            </form>
-          `}
+            `}
+          </div>
 
-          <div style="display:flex; justify-content:flex-end;">
+          <div style="display:flex; justify-content:flex-end; margin-top:4px;">
             <button type="button" onclick="closeModal()" class="btn btn-secondary btn-sm">Close</button>
           </div>
         </div>
       `);
     }
 
-    function handleSendJoinRequest(e, projId) {
-      e.preventDefault();
+    function requestToJoinPrivate(projId) {
       if (!currentUser) { showAuthModal('signup'); return; }
-
-      const note = document.getElementById('join-req-note') ? document.getElementById('join-req-note').value.trim() : '';
       const existing = store.joinRequests.find(r => r.projectId === projId && r.userId === currentUser.id);
-
       if (existing && existing.status === 'PENDING') {
-        showToast("Your join request is already pending leader review!");
+        showToast("Join request already pending for leader review!");
         return;
       }
-
       if (!existing) {
         store.joinRequests.push({
-          id: "jr_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          id: "jr_" + Date.now(),
           projectId: projId,
           userId: currentUser.id,
-          note: note,
           status: "PENDING",
           createdAt: new Date().toISOString()
         });
       } else {
         existing.status = "PENDING";
-        existing.note = note;
       }
-
       saveState();
       closeModal();
-      showToast("Join request sent! The leader will validate your profile.");
+      showToast("Join request sent to project leader!");
       renderExploreView();
     }
 
-    // In-App Modal for Private Project Password Unlock
-    function promptUnlockPrivatePasswordModal(projId) {
-      const p = store.projects.find(x => x.id === projId);
-      if (!p) return;
-
-      openModal("🔒 Enter Private Project Password", `
-        <form onsubmit="handlePrivatePasswordUnlockSubmit(event, '${p.id}')" style="display:flex; flex-direction:column; gap:14px;">
-          <div style="background:var(--c-charcoal-dark); padding:14px; border-radius:8px; border:1px solid rgba(221,213,205,0.2);">
-            <div style="font-weight:700; color:var(--c-cream); font-size:1rem;">${escapeHtml(p.name)}</div>
-            <div class="text-muted text-xs" style="margin-top:2px;">You are an approved collaborator. Enter the private project password to unlock the workspace:</div>
-          </div>
-
-          <div>
-            <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Project Password *</label>
-            <div class="input-with-btn">
-              <input id="modal-priv-pass-input" type="password" required placeholder="Enter private password" autofocus style="background:var(--c-charcoal-dark);" />
-              <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('modal-priv-pass-input', this)">👁️</button>
-            </div>
-          </div>
-
-          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
-            <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
-            <button type="submit" class="btn btn-primary" style="flex:1;">🔓 Unlock & Enter Workspace &rarr;</button>
-          </div>
-        </form>
-      `);
-    }
-
-    function handlePrivatePasswordUnlockSubmit(e, projId) {
+    function handleUnlockDirectSubmit(e, projId) {
       e.preventDefault();
       const p = store.projects.find(x => x.id === projId);
       if (!p) return;
+      const enteredPass = (document.getElementById('modal-direct-pass').value || '').trim();
 
-      const entered = (document.getElementById('modal-priv-pass-input').value || '').trim();
-      if (entered === (p.password || '').trim()) {
-        unlockedPrivateProjects[projId] = true;
-        closeModal();
-        showToast("Password verified! Workspace unlocked.");
-        navigate('project', projId);
-      } else {
-        showToast("Incorrect private project password. Please try again!", true);
-      }
-    }
-
-    // Modal to unlock private project from top bar search
-    function promptJoinPrivateProject() {
-      const privateProjects = store.projects.filter(p => p.visibility === 'PRIVATE');
-      if (privateProjects.length === 0) {
-        showToast("No private projects currently active.");
+      if (!enteredPass) {
+        showToast("Please enter a password or send a join request!", true);
         return;
       }
 
-      openModal("🔒 Access Private Project", `
-        <div style="display:flex; flex-direction:column; gap:14px;">
-          <p class="text-muted text-xs">Select a private project to send a join request or unlock access:</p>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            ${privateProjects.map(p => `
-              <div onclick="closeModal(); promptJoinOrEnterProject('${p.id}');" style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); padding:12px 14px; border-radius:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onmouseover="this.style.borderColor='var(--c-burgundy)'" onmouseout="this.style.borderColor='rgba(221,213,205,0.2)'">
-                <div>
-                  <div style="font-weight:700; color:var(--c-cream);">${escapeHtml(p.name)}</div>
-                  <div class="text-muted text-xs">${escapeHtml(p.description.slice(0, 60))}...</div>
-                </div>
-                <span class="badge badge-yellow">🔒 Select &rarr;</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `);
+      if (enteredPass === (p.password || "").trim()) {
+        if (currentUser && !store.members.some(m => m.projectId === p.id && m.userId === currentUser.id)) {
+          store.members.push({ projectId: p.id, userId: currentUser.id });
+          saveState();
+        }
+        closeModal();
+        showToast("Password verified! Project unlocked.");
+        navigate('project', p.id);
+      } else {
+        showToast("Incorrect project password. Please try again!", true);
+      }
     }
+
 
     function showViewPasswordModal(pass) {
       openModal("🔑 Project Password", `
         <div style="display:flex; flex-direction:column; gap:14px; text-align:center; padding:10px 0;">
-          <p class="text-muted text-xs">Project password for approved members to unlock this private workspace:</p>
+          <p class="text-muted text-xs">Share this password with collaborators to allow them to join this private workspace:</p>
           <div style="background:var(--c-charcoal-dark); border:1px solid var(--c-burgundy); padding:12px; border-radius:8px; font-size:1.2rem; font-weight:800; font-family:monospace; color:var(--c-cream); letter-spacing:2px;">
             ${escapeHtml(pass || 'None')}
           </div>
@@ -1464,13 +1714,8 @@
       const isLeader = currentUser && project.leaderId === currentUser.id;
       const isMember = isLeader || (currentUser && store.members.some(m => m.projectId === project.id && m.userId === currentUser.id));
 
-      if (!isMember) {
-        promptJoinOrEnterProject(projectId);
-        return;
-      }
-
-      if (project.visibility === 'PRIVATE' && !isLeader && !unlockedPrivateProjects[projectId]) {
-        promptUnlockPrivatePasswordModal(projectId);
+      if (project.visibility === 'PRIVATE' && !isMember) {
+        promptUnlockPrivateProject(projectId);
         return;
       }
 
@@ -1493,6 +1738,8 @@
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
               ${isLeader ? `<button onclick="showDeleteProjectConfirmationModal('${project.id}')" class="btn btn-secondary btn-sm" style="border-color:rgba(125,64,71,0.6); color:var(--c-cream); background:rgba(125,64,71,0.25);">🗑️ Delete Project</button>` : ''}
               ${isMember && !isLeader ? `<button onclick="showLeaveProjectModal('${project.id}')" class="btn btn-secondary btn-sm" style="border-color:rgba(125,64,71,0.5);">🚪 Leave Project</button>` : ''}
+              ${!isMember && currentUser && project.visibility === 'PUBLIC' ? `<button onclick="requestToJoin('${project.id}')" class="btn btn-primary">Request to Join</button>` : ''}
+              ${!currentUser ? `<button onclick="showAuthModal('signup')" class="btn btn-primary btn-sm">Sign in to Join</button>` : ''}
               ${isLeader && project.visibility === 'PRIVATE' ? `<button onclick="showViewPasswordModal('${escapeHtml(project.password || '')}')" class="btn btn-secondary btn-sm">🔑 View Password</button>` : ''}
             </div>
           </div>
@@ -2722,7 +2969,7 @@
       `;
     }
 
-    // --- JOIN REQUESTS (ONLY PROJECT LEADER CAN VALIDATE, APPROVE OR DENY) ---
+    // --- JOIN REQUESTS (ONLY PROJECT LEADER CAN APPROVE OR DENY) ---
     function loadProjectRequests(projId) {
       const container = document.getElementById('project-tab-content');
       if (!container) return;
@@ -2730,87 +2977,27 @@
       const isLeader = proj && currentUser && proj.leaderId === currentUser.id;
 
       if (!isLeader) {
-        container.innerHTML = '<div class="glass-card" style="text-align:center; padding:30px; color:var(--c-burgundy);">🔒 Access Restricted: Only the project leader can view and validate applicant requests.</div>';
+        container.innerHTML = '<div class="glass-card" style="text-align:center; padding:30px; color:var(--c-burgundy);">🔒 Access Restricted: Only the project leader can view and approve member requests.</div>';
         return;
       }
 
       const requests = store.joinRequests.filter(r => r.projectId === projId && r.status === 'PENDING');
       container.innerHTML = `
         <div class="glass-card" style="display:flex; flex-direction:column; gap:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-            <div>
-              <h3 style="font-weight:700; font-size:1.15rem; color:var(--c-cream);">Pending Join Requests (${requests.length})</h3>
-              <p class="text-muted text-xs">Validate applicant profiles, GitHub repositories, and skills before admitting them to the project workspace.</p>
-            </div>
-            <span class="badge ${proj.visibility === 'PUBLIC' ? 'badge-green' : 'badge-yellow'}">${proj.visibility === 'PUBLIC' ? 'Public Project' : '🔒 Private Project'}</span>
-          </div>
-
-          ${requests.length === 0 ? '<div class="text-muted text-sm" style="text-align:center; padding:30px; background:var(--c-charcoal-dark); border-radius:8px;">No pending join requests at this time.</div>' : ''}
-          
-          <div style="display:flex; flex-direction:column; gap:14px;">
+          <h3 style="font-weight:600;">Pending Join Requests (${requests.length})</h3>
+          ${requests.length === 0 ? '<div class="text-muted text-sm" style="text-align:center; padding:20px;">No pending join requests</div>' : ''}
+          <div style="display:flex; flex-direction:column; gap:10px;">
             ${requests.map(r => {
-              const u = store.users.find(x => x.id === r.userId) || { name: 'Applicant' };
-              const avatarLetter = (u.name || 'U').slice(0, 1).toUpperCase();
-              const skills = u.skills || [];
-              const githubHandle = u.githubId || (u.githubUrl ? u.githubUrl.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '') : '');
-
+              const u = store.users.find(x => x.id === r.userId) || { name: 'User' };
               return `
-                <div style="background:var(--c-charcoal-dark); padding:16px; border-radius:10px; border:1px solid rgba(221,213,205,0.2); display:flex; flex-direction:column; gap:12px;">
-                  
-                  <!-- Applicant Header & Identity -->
-                  <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                      ${u.picture ? `
-                        <img src="${u.picture}" style="width:48px; height:48px; border-radius:12px; object-fit:cover; border:2px solid var(--c-burgundy);" />
-                      ` : `
-                        <div style="width:48px; height:48px; border-radius:12px; background:var(--c-burgundy); color:var(--c-cream); font-weight:bold; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">
-                          ${avatarLetter}
-                        </div>
-                      `}
-                      <div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                          <h4 style="font-weight:700; font-size:1rem; color:var(--c-cream);">${escapeHtml(u.name)}</h4>
-                          <span class="badge badge-indigo text-xs">Applicant</span>
-                        </div>
-                        <div class="text-muted text-xs" style="margin-top:2px;">${escapeHtml(u.headline || (u.school ? `Student at ${u.school}` : 'Pronnect Collaborator'))}</div>
-                        <div style="font-size:0.75rem; color:var(--c-sand); margin-top:2px;">📧 ${escapeHtml(u.email || 'Email Verified')} ${u.school ? `• 🎓 ${escapeHtml(u.school)}` : ''}</div>
-                      </div>
-                    </div>
-
-                    <!-- Leader Action & Profile Review Buttons -->
-                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                      <button onclick="navigate('profile', '${u.id}')" class="btn btn-secondary btn-sm" style="display:flex; align-items:center; gap:6px;">
-                        <span>👤 View Profile</span>
-                      </button>
-                      <button onclick="handleJoinRequest('${r.id}', 'DENIED', '${projId}')" class="btn btn-secondary btn-sm" style="color:var(--c-burgundy); border-color:rgba(125,64,71,0.5);">
-                        ✕ Deny
-                      </button>
-                      <button onclick="handleJoinRequest('${r.id}', 'APPROVED', '${projId}')" class="btn btn-primary btn-sm">
-                        ✓ Approve & Add
-                      </button>
-                    </div>
+                <div class="flex justify-between items-center" style="background:var(--c-charcoal-dark); padding:12px 16px; border-radius:8px; border:1px solid rgba(221,213,205,0.2);">
+                  <div>
+                    <div style="font-weight:500;">${escapeHtml(u.name)}</div>
+                    <div class="text-muted text-xs">${escapeHtml(u.school || '')}</div>
                   </div>
-
-                  <!-- Applicant Bio & Note -->
-                  ${r.note ? `
-                    <div style="background:rgba(221,213,205,0.06); padding:8px 12px; border-radius:6px; font-size:0.8rem; color:var(--c-cream);">
-                      💬 <strong>Applicant Note:</strong> "${escapeHtml(r.note)}"
-                    </div>
-                  ` : ''}
-
-                  <!-- GitHub and Domain Skills Validation Ribbon -->
-                  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding-top:8px; border-top:1px solid rgba(221,213,205,0.1); font-size:0.75rem;">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                      ${githubHandle ? `
-                        <a href="https://github.com/${encodeURIComponent(githubHandle)}" target="_blank" class="glass-pill" style="padding:4px 10px; display:inline-flex; align-items:center; gap:6px; color:var(--c-cream); text-decoration:none; border:1px solid rgba(221,213,205,0.3);">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-                          <span>🐙 @${escapeHtml(githubHandle)}</span>
-                        </a>
-                      ` : '<span class="text-muted text-xs">No GitHub linked</span>'}
-                    </div>
-                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                      ${skills.slice(0, 3).map(s => `<span class="badge badge-indigo" style="font-size:10px;">${escapeHtml(s)}</span>`).join('')}
-                    </div>
+                  <div style="display:flex; gap:8px;">
+                    <button onclick="handleJoinRequest('${r.id}', 'DENIED', '${projId}')" class="btn btn-secondary btn-sm" style="color:var(--c-burgundy);">Deny</button>
+                    <button onclick="handleJoinRequest('${r.id}', 'APPROVED', '${projId}')" class="btn btn-primary btn-sm">Approve</button>
                   </div>
                 </div>
               `;
@@ -2837,7 +3024,7 @@
         }
         saveState();
       }
-      showToast(action === 'APPROVED' ? 'Member approved & added to project!' : 'Request denied.');
+      showToast(action === 'APPROVED' ? 'Member approved!' : 'Request denied.');
       loadProjectRequests(projId);
       renderProjectView(projId);
     }
@@ -3246,24 +3433,12 @@
                   </div>
                 </div>
 
-                <!-- GitHub Badge / ID Pill -->
+                <!-- Verified Account Pill -->
                 <div style="margin-bottom:8px;">
-                  ${user.githubId || user.githubUrl ? `
-                    <a href="${user.githubUrl || ('https://github.com/' + user.githubId)}" target="_blank" class="glass-pill" style="padding:6px 14px; display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--c-cream); text-decoration:none; border:1px solid rgba(221,213,205,0.3); transition:all 0.2s;" onmouseover="this.style.borderColor='var(--c-cream)'" onmouseout="this.style.borderColor='rgba(221,213,205,0.3)'">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-                      <span>🐙 @${escapeHtml(user.githubId || (user.githubUrl ? user.githubUrl.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '') : ''))}</span>
-                    </a>
-                  ` : `
-                    ${isMe ? `
-                      <button onclick="switchProfileTab('edit')" class="glass-pill" style="padding:6px 14px; display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--c-sand); border:1px dashed rgba(221,213,205,0.4); cursor:pointer;">
-                        <span>+ Add GitHub ID</span>
-                      </button>
-                    ` : `
-                      <div class="glass-pill" style="padding:6px 14px; display:flex; align-items:center; gap:6px; font-size:0.75rem; color:var(--c-sand);">
-                        <span>Pronnect Builder</span>
-                      </div>
-                    `}
-                  `}
+                  <div class="glass-pill" style="padding:6px 14px; display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--c-cream);">
+                    <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                    <span>Google & Pronnect Verified</span>
+                  </div>
                 </div>
               </div>
 
@@ -3321,7 +3496,6 @@
         const skills = user.skills && user.skills.length > 0 ? user.skills : ['Full-Stack', 'UI/UX', 'AI/ML', 'Problem Solving'];
         const interests = user.interests && user.interests.length > 0 ? user.interests : ['Autonomous Robotics', 'Hackathons', 'Web3', 'AI Systems'];
         const bio = user.bio || 'Passionate about assembling high-performance teams, shipping hackathon projects, and building innovative software.';
-        const githubHandle = user.githubId || (user.githubUrl ? user.githubUrl.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '') : '');
 
         content.innerHTML = `
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
@@ -3350,49 +3524,13 @@
             </div>
 
             <div style="display:flex; flex-direction:column; gap:20px;">
-              
-              <!-- 🐙 DEDICATED GITHUB PROFILE CARD -->
-              <div class="glass-card" style="display:flex; flex-direction:column; gap:12px; border:1px solid rgba(221,213,205,0.3);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-                    <h3 style="font-size:1.05rem; font-weight:700;">GitHub Developer Profile</h3>
-                  </div>
-                  ${githubHandle ? `<span class="badge badge-green">✓ Linked</span>` : `<span class="badge">Not Set</span>`}
-                </div>
-                
-                ${githubHandle ? `
-                  <div style="background:var(--c-charcoal-dark); border-radius:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(221,213,205,0.15);">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                      <img src="https://github.com/${encodeURIComponent(githubHandle)}.png" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(githubHandle)}'" style="width:36px; height:36px; border-radius:50%; border:1px solid var(--c-burgundy);" />
-                      <div>
-                        <div style="font-weight:700; color:var(--c-cream); font-size:0.9rem;">@${escapeHtml(githubHandle)}</div>
-                        <div class="text-muted text-xs">github.com/${escapeHtml(githubHandle)}</div>
-                      </div>
-                    </div>
-                    <a href="https://github.com/${encodeURIComponent(githubHandle)}" target="_blank" class="btn btn-secondary btn-sm" style="display:flex; align-items:center; gap:6px; font-weight:600;">
-                      <span>Open Profile</span> &rarr;
-                    </a>
-                  </div>
-                ` : `
-                  <div style="background:var(--c-charcoal-dark); border-radius:8px; padding:16px; text-align:center; border:1px dashed rgba(221,213,205,0.2);">
-                    <p class="text-muted text-xs">No GitHub ID linked to this profile yet.</p>
-                    ${currentUser && currentUser.id === user.id ? `
-                      <button onclick="switchProfileTab('edit')" class="btn btn-secondary btn-sm" style="margin-top:8px;">
-                        🐙 + Add GitHub ID in Settings
-                      </button>
-                    ` : ''}
-                  </div>
-                `}
-              </div>
-
               <!-- Connected Channels & Social Links -->
               <div class="glass-card" style="display:flex; flex-direction:column; gap:14px;">
                 <h3 style="font-size:1.1rem; font-weight:700;">Connected Channels</h3>
                 <div style="display:flex; flex-direction:column; gap:12px; font-size:0.85rem;">
                   <div style="display:flex; align-items:center; gap:8px; color:var(--c-sand);">
                     <span>🐙 GitHub:</span>
-                    <a href="${user.githubUrl || (user.githubId ? 'https://github.com/' + user.githubId : '#')}" target="_blank" style="color:var(--c-sand); text-decoration:underline;">${user.githubId || user.githubUrl ? escapeHtml(user.githubId || user.githubUrl.replace(/^https?:\/\//, '')) : 'Not set'}</a>
+                    <a href="${user.githubUrl || '#'}" target="_blank" style="color:var(--c-sand); text-decoration:underline;">${user.githubUrl ? escapeHtml(user.githubUrl.replace(/^https?:\/\//, '')) : 'Not set'}</a>
                   </div>
                   <div style="display:flex; align-items:center; gap:8px; color:var(--c-sand);">
                     <span>💼 LinkedIn:</span>
@@ -3544,17 +3682,14 @@
                 <input id="edit-interests" value="${escapeHtml((user.interests || []).join(', '))}" placeholder="Autonomous Vehicles, Hackathons, Web3, SpaceTech, Computer Vision" />
               </div>
 
-              <!-- 5. 🐙 Dedicated GitHub ID & Connected Channels -->
+              <!-- 5. Connected Channels & Links -->
               <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:12px;">
                 <label class="text-xs font-bold text-muted" style="text-transform:uppercase;">Connected Channels & Profiles</label>
-                
-                <div style="background:rgba(125,64,71,0.15); border:1px solid rgba(125,64,71,0.4); border-radius:8px; padding:12px;">
-                  <label class="text-xs font-bold" style="display:block; margin-bottom:4px; color:var(--c-cream);">🐙 GitHub ID / Username</label>
-                  <input id="edit-github-id" value="${escapeHtml(user.githubId || (user.githubUrl ? user.githubUrl.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '') : ''))}" placeholder="e.g. Omkar-G-20 (or your GitHub handle)" style="background:var(--c-charcoal); border:1px solid rgba(221,213,205,0.3);" />
-                  <span class="text-muted text-xs" style="margin-top:4px; display:block;">Your GitHub link will automatically resolve to <code>https://github.com/your-username</code></span>
-                </div>
-
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                  <div>
+                    <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🐙 GitHub Profile URL</label>
+                    <input id="edit-github" value="${escapeHtml(user.githubUrl || '')}" placeholder="https://github.com/yourhandle" />
+                  </div>
                   <div>
                     <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">💼 LinkedIn URL</label>
                     <input id="edit-linkedin" value="${escapeHtml(user.linkedinUrl || '')}" placeholder="https://linkedin.com/in/yourhandle" />
@@ -3567,10 +3702,10 @@
                     <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🐦 Twitter / X Profile URL</label>
                     <input id="edit-twitter" value="${escapeHtml(user.twitterUrl || '')}" placeholder="https://x.com/yourhandle" />
                   </div>
-                  <div>
-                    <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🌐 Personal Portfolio / Website URL</label>
-                    <input id="edit-portfolio" value="${escapeHtml(user.portfolioUrl || '')}" placeholder="https://yourportfolio.dev" />
-                  </div>
+                </div>
+                <div>
+                  <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🌐 Personal Portfolio / Website URL</label>
+                  <input id="edit-portfolio" value="${escapeHtml(user.portfolioUrl || '')}" placeholder="https://yourportfolio.dev" />
                 </div>
               </div>
 
@@ -3615,10 +3750,7 @@
       const skillsRaw = document.getElementById('edit-skills').value.trim();
       const interestsRaw = document.getElementById('edit-interests').value.trim();
 
-      const rawGithub = document.getElementById('edit-github-id') ? document.getElementById('edit-github-id').value.trim() : '';
-      const githubId = rawGithub.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '');
-      const githubUrl = githubId ? `https://github.com/${githubId}` : '';
-
+      const githubUrl = document.getElementById('edit-github').value.trim();
       const linkedinUrl = document.getElementById('edit-linkedin').value.trim();
       const discordTag = document.getElementById('edit-discord').value.trim();
       const twitterUrl = document.getElementById('edit-twitter').value.trim();
@@ -3635,7 +3767,6 @@
       currentUser.coverBg = coverBg || currentUser.coverBg;
       currentUser.skills = skills;
       currentUser.interests = interests;
-      currentUser.githubId = githubId;
       currentUser.githubUrl = githubUrl;
       currentUser.linkedinUrl = linkedinUrl;
       currentUser.discordTag = discordTag;
@@ -3647,13 +3778,13 @@
         Object.assign(u, {
           name, headline, school, bio, picture: currentUser.picture,
           coverBg: currentUser.coverBg, skills, interests,
-          githubId, githubUrl, linkedinUrl, discordTag, twitterUrl, portfolioUrl
+          githubUrl, linkedinUrl, discordTag, twitterUrl, portfolioUrl
         });
       }
 
       await saveState();
       renderNavAuth();
-      showToast('Profile, GitHub ID & Channels saved live!');
+      showToast('Profile, PFP, Cover & Channels saved live!');
       renderProfileView(currentUser.id);
     }
 

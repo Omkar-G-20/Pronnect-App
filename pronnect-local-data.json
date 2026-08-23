@@ -1,5 +1,21 @@
 {
-  "users": [],
+  "users": [
+    {
+      "id": "u_1787495434275_9b0e",
+      "name": "Omkar Gurav",
+      "email": "omkargurav3217@gmail.com",
+      "school": "v",
+      "password": "123456",
+      "headline": "Builder & Student at v",
+      "bio": "Collaborating and building innovative projects with the Pronnect community.",
+      "skills": [
+        "Full-Stack",
+        "AI/ML"
+      ],
+      "picture": "https://api.dicebear.com/7.x/bottts/svg?seed=Omkar%20Gurav",
+      "createdAt": "2026-08-23T14:30:34.275Z"
+    }
+  ],
   "projects": [],
   "members": [],
   "joinRequests": [],
