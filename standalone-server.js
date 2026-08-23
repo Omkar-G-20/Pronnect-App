@@ -643,12 +643,21 @@ const server = http.createServer(async (req, res) => {
 
     if (method === "PATCH") {
       if (!user || user.id !== targetId) return sendJSON(res, { error: "Forbidden" }, 403);
-      const { name, bio, githubUrl, school, skills } = await parseBody(req);
+      const { name, bio, githubUrl, githubId, school, skills, interests, headline, picture, coverBg, linkedinUrl, discordTag, twitterUrl, portfolioUrl } = await parseBody(req);
       if (name) target.name = name;
       if (bio !== undefined) target.bio = bio;
       if (githubUrl !== undefined) target.githubUrl = githubUrl;
+      if (githubId !== undefined) target.githubId = githubId;
       if (school !== undefined) target.school = school;
       if (skills !== undefined) target.skills = skills;
+      if (interests !== undefined) target.interests = interests;
+      if (headline !== undefined) target.headline = headline;
+      if (picture !== undefined) target.picture = picture;
+      if (coverBg !== undefined) target.coverBg = coverBg;
+      if (linkedinUrl !== undefined) target.linkedinUrl = linkedinUrl;
+      if (discordTag !== undefined) target.discordTag = discordTag;
+      if (twitterUrl !== undefined) target.twitterUrl = twitterUrl;
+      if (portfolioUrl !== undefined) target.portfolioUrl = portfolioUrl;
       saveDB();
       const { salt, passwordHash, ...safe } = target;
       return sendJSON(res, { user: safe });

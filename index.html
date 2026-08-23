@@ -508,7 +508,7 @@
       }
     }
 
-    // --- AUTHENTICATION MODAL: GOOGLE ONE-TAP, GITHUB, SSO & DIRECT EMAIL AUTH ---
+    // --- AUTHENTICATION MODAL: DIRECT EMAIL & USERNAME AUTH (NO GOOGLE/THIRD-PARTY) ---
     function showAuthError(msg) {
       const banner = document.getElementById('auth-error-banner');
       if (banner) {
@@ -523,107 +523,86 @@
       if (banner) banner.style.display = 'none';
     }
 
-    function showAuthModal(tab = 'login') {
+    function showAuthModal(tab = 'signup') {
       const isSignup = tab === 'signup';
-      const registeredUsers = store.users || [];
-      const primaryUser = registeredUsers[0] || null;
 
-      openModal(isSignup ? "Create your account" : "Log in to your account", `
-        <div style="display:flex; flex-direction:column; gap:12px;">
+      openModal(isSignup ? "✨ Create Your Account" : "🔑 Log In to Workspace", `
+        <div style="display:flex; flex-direction:column; gap:14px;">
           
           <!-- In-Modal Prominent Error Banner -->
           <div id="auth-error-banner" class="auth-error-banner"></div>
 
-          ${primaryUser ? `
-            <!-- 1. Google One-Tap Card -->
-            <div onclick="triggerGoogleSignIn('${primaryUser.email}', '${primaryUser.name}')" style="background:#e8f0fe; border:1px solid #d2e3fc; border-radius:8px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#dce8fc'" onmouseout="this.style.background='#e8f0fe'">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <img src="${primaryUser.picture || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent(primaryUser.name)}" style="width:32px; height:32px; border-radius:50%; background:#7d4047; padding:2px; object-fit:cover;" />
-                <div style="text-align:left;">
-                  <div style="font-weight:700; font-size:0.85rem; color:#1a73e8; display:flex; align-items:center; gap:4px;">
-                    <span>Continue as ${escapeHtml(primaryUser.name.split(' ')[0])}</span>
-                    <span style="font-size:10px;">▾</span>
-                  </div>
-                  <div style="font-size:0.75rem; color:#5f6368;">${escapeHtml(primaryUser.email)}</div>
-                </div>
-              </div>
-              <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-            </div>
-          ` : `
-            <!-- Fast Google Login Card -->
-            <button type="button" onclick="triggerGoogleSignIn()" class="btn" style="background:#ffffff; color:#1f2937; border:1px solid #d2e3fc; width:100%; font-weight:600; padding:10px 14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
-              <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-              <span>Continue with Google</span>
+          <!-- Tab Switcher (Create Account First, Log In Second) -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:var(--c-charcoal-dark); padding:4px; border-radius:10px; border:1px solid rgba(221,213,205,0.2);">
+            <button type="button" onclick="showAuthModal('signup')" class="btn btn-sm ${isSignup ? 'btn-primary' : 'btn-secondary'}" style="border:none; border-radius:8px; font-weight:600;">
+              ✨ 1. Create Account
             </button>
-          `}
-
-          <!-- 2. Continue with GitHub Button -->
-          <button type="button" onclick="triggerGithubSignIn()" class="btn" style="background:#24292e; color:#ffffff; border:1px solid rgba(221,213,205,0.2); width:100%; font-weight:600; padding:10px 14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-            <span>Continue with GitHub</span>
-          </button>
-
-          <!-- 3. Continue with SSO Button -->
-          <button type="button" onclick="triggerGoogleSignIn()" class="btn btn-secondary" style="width:100%; border:1px solid rgba(221,213,205,0.25); background:var(--c-charcoal-dark); color:var(--c-cream); font-weight:600; padding:10px 14px; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:8px;">
-            <span>🔒 Continue with SSO</span>
-          </button>
-
-          <!-- Divider: or -->
-          <div style="display:flex; align-items:center; gap:12px; margin:4px 0;">
-            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
-            <span class="text-muted text-xs" style="color:var(--c-sand); font-size:12px;">or</span>
-            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
+            <button type="button" onclick="showAuthModal('login')" class="btn btn-sm ${!isSignup ? 'btn-primary' : 'btn-secondary'}" style="border:none; border-radius:8px; font-weight:600;">
+              🔑 2. Log In
+            </button>
           </div>
 
           ${isSignup ? `
-            <!-- CREATE ACCOUNT FORM -->
+            <!-- 1. CREATE ACCOUNT FORM -->
             <form onsubmit="handleDirectSignup(event)" style="display:flex; flex-direction:column; gap:12px;">
               <div>
-                <input id="auth-reg-name" required placeholder="Full Name *" oninput="clearAuthError()" autofocus style="background:var(--c-charcoal-dark);" />
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Full Name *</label>
+                <input id="auth-reg-name" required placeholder="e.g. Omkar Gurav" oninput="clearAuthError()" autofocus style="background:var(--c-charcoal-dark);" />
               </div>
               <div>
-                <input id="auth-reg-email" type="email" required placeholder="Email address *" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Email Address *</label>
+                <input id="auth-reg-email" type="email" required placeholder="e.g. omkar@example.com" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
               </div>
               <div>
-                <input id="auth-reg-school" required placeholder="School / College *" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">School / College / Organization *</label>
+                <input id="auth-reg-school" required placeholder="e.g. Dayananda Sagar College of Engineering" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
               </div>
-              <div class="input-with-btn">
-                <input id="auth-reg-password" type="password" required placeholder="Password *" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
-                <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-password', this)">👁️</button>
+              <div>
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🐙 GitHub ID / Username (Optional)</label>
+                <input id="auth-reg-github" placeholder="e.g. Omkar-G-20" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
               </div>
-              <div class="input-with-btn">
-                <input id="auth-reg-confirm-password" type="password" required placeholder="Confirm Password *" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
-                <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-confirm-password', this)">👁️</button>
+              <div>
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Create Password *</label>
+                <div class="input-with-btn">
+                  <input id="auth-reg-password" type="password" required placeholder="Enter secure password (min 4 chars)" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
+                  <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-password', this)">👁️</button>
+                </div>
               </div>
-              <button type="submit" class="btn" style="background:#5b8def; color:white; font-weight:700; padding:12px; margin-top:4px; border-radius:8px;">
-                Continue
+              <div>
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Confirm Password *</label>
+                <div class="input-with-btn">
+                  <input id="auth-reg-confirm-password" type="password" required placeholder="Confirm password" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
+                  <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-confirm-password', this)">👁️</button>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="padding:12px; margin-top:4px; font-weight:700;">
+                ✨ Create Account & Enter Workspace &rarr;
               </button>
-              <div style="text-align:center; margin-top:6px;">
+              <div style="text-align:center; margin-top:4px;">
                 <span class="text-xs text-muted">Already have an account? </span>
-                <a href="javascript:void(0)" onclick="showAuthModal('login')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Log in</a>
+                <a href="javascript:void(0)" onclick="showAuthModal('login')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Log in here &rarr;</a>
               </div>
             </form>
           ` : `
-            <!-- LOG IN FORM -->
+            <!-- 2. LOG IN FORM -->
             <form onsubmit="handleDirectLogin(event)" style="display:flex; flex-direction:column; gap:12px;">
               <div>
-                <input id="auth-login-email" required placeholder="Email address or username" oninput="clearAuthError()" autofocus style="background:var(--c-charcoal-dark);" />
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Email Address or Username *</label>
+                <input id="auth-login-email" required placeholder="Enter your email or name" oninput="clearAuthError()" autofocus style="background:var(--c-charcoal-dark);" />
               </div>
               <div>
+                <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Password *</label>
                 <div class="input-with-btn">
-                  <input id="auth-login-password" type="password" required placeholder="Password" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
+                  <input id="auth-login-password" type="password" required placeholder="Enter password" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
                   <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-login-password', this)">👁️</button>
                 </div>
               </div>
-              <div style="text-align:left; margin-top:-4px;">
-                <a href="javascript:void(0)" onclick="showAuthError('Please enter your email and contact support or create a new profile.')" style="color:#5b8def; font-size:0.75rem; text-decoration:none;">Forgot your password?</a>
-              </div>
-              <button type="submit" class="btn" style="background:#5b8def; color:white; font-weight:700; padding:12px; margin-top:4px; border-radius:8px;">
-                Continue
+              <button type="submit" class="btn btn-primary" style="padding:12px; margin-top:6px; font-weight:700;">
+                🔑 Log In to Workspace &rarr;
               </button>
-              <div style="text-align:center; margin-top:6px;">
-                <span class="text-xs text-muted">Don't have an account? </span>
-                <a href="javascript:void(0)" onclick="showAuthModal('signup')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Sign up</a>
+              <div style="text-align:center; margin-top:4px;">
+                <span class="text-xs text-muted">Don't have an account yet? </span>
+                <a href="javascript:void(0)" onclick="showAuthModal('signup')" style="color:var(--c-cream); font-weight:bold; font-size:0.75rem; text-decoration:underline;">Create Account first &rarr;</a>
               </div>
             </form>
           `}
@@ -636,126 +615,6 @@
       return EMAIL_REGEX.test(String(email).trim());
     }
 
-    function prefillLogin(email) {
-      const emailInput = document.getElementById('auth-login-email');
-      const passInput = document.getElementById('auth-login-password');
-      if (emailInput) emailInput.value = email;
-      if (passInput) passInput.focus();
-    }
-
-    // --- ⚡ 1-CLICK FAST GOOGLE AUTHENTICATION ---
-    function triggerGoogleSignIn(accountEmail = null) {
-      if (accountEmail) {
-        let u = store.users.find(x => x.email.toLowerCase() === accountEmail.toLowerCase());
-        if (!u) {
-          const defaultName = accountEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-          u = {
-            id: "u_google_" + Date.now(),
-            name: defaultName,
-            email: accountEmail,
-            school: "Google Verified Builder",
-            picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(defaultName)}`,
-            skills: ["Full-Stack", "Google Cloud", "AI Research"],
-            interests: ["Hackathons", "Open Source", "Autonomous Systems"],
-            bio: "Google verified developer & collaborator on Pronnect.",
-            authProvider: "google"
-          };
-          store.users.push(u);
-        }
-        currentUser = u;
-        localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
-        saveState();
-        closeModal();
-        showToast(`✨ Welcome back, ${currentUser.name}! (Signed in via Google)`);
-        renderNav();
-        navigate('explore');
-        return;
-      }
-
-      openModal("⚡ Fast 1-Click Google Sign-In", `
-        <div style="display:flex; flex-direction:column; gap:16px; text-align:center;">
-          <div style="width:48px; height:48px; border-radius:50%; background:white; margin:0 auto; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.3);">
-            <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-          </div>
-          <div>
-            <h3 style="font-size:1.1rem; font-weight:700; color:var(--c-cream);">Continue with Google Account</h3>
-            <p class="text-muted text-xs" style="margin-top:4px;">Instantly access your projects, team rooms, and kanban boards with zero password hassle.</p>
-          </div>
-
-          <form onsubmit="handleGoogleCustomSubmit(event)" style="display:flex; flex-direction:column; gap:10px; text-align:left;">
-            <div>
-              <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Google Email</label>
-              <input id="google-custom-email" type="email" required placeholder="your.name@gmail.com" autofocus style="background:var(--c-charcoal-dark);" />
-            </div>
-            <div>
-              <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Display Name (Optional)</label>
-              <input id="google-custom-name" placeholder="e.g. Omkar Gurav" style="background:var(--c-charcoal-dark);" />
-            </div>
-            <button type="submit" class="btn btn-primary" style="margin-top:4px; width:100%;">🚀 1-Click Fast Login &rarr;</button>
-          </form>
-        </div>
-      `);
-    }
-
-    function handleGoogleCustomSubmit(e) {
-      e.preventDefault();
-      const email = document.getElementById('google-custom-email').value.trim();
-      const customName = document.getElementById('google-custom-name').value.trim();
-      if (!email) return;
-
-      let u = store.users.find(x => x.email.toLowerCase() === email.toLowerCase());
-      if (!u) {
-        const name = customName || email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        u = {
-          id: "u_google_" + Date.now(),
-          name: name,
-          email: email,
-          school: "Google Verified Builder",
-          picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`,
-          skills: ["Full-Stack", "AI Engineering", "Product Design"],
-          interests: ["Hackathons", "Open Source", "Autonomous Systems"],
-          bio: "Google verified developer & collaborator on Pronnect.",
-          authProvider: "google"
-        };
-        store.users.push(u);
-      }
-      currentUser = u;
-      localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
-      saveState();
-      closeModal();
-      showToast(`✨ Welcome, ${currentUser.name}! (Signed in via Google)`);
-      renderNav();
-      navigate('explore');
-    }
-
-    function triggerGithubSignIn() {
-      const email = prompt("Enter your GitHub username or email:", "developer@github.com");
-      if (!email) return;
-      const username = email.split('@')[0];
-      let u = store.users.find(x => x.email.toLowerCase() === email.toLowerCase() || x.name.toLowerCase() === username.toLowerCase());
-      if (!u) {
-        u = {
-          id: "u_github_" + Date.now(),
-          name: username,
-          email: email.includes('@') ? email : `${username}@users.noreply.github.com`,
-          school: "GitHub Developer",
-          picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`,
-          skills: ["Git", "Full-Stack", "Open Source"],
-          interests: ["Hackathons", "Code Collab"],
-          bio: "GitHub verified collaborator on Pronnect.",
-          authProvider: "github"
-        };
-        store.users.push(u);
-      }
-      currentUser = u;
-      localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
-      saveState();
-      closeModal();
-      showToast(`✨ Welcome, ${currentUser.name}! (Signed in via GitHub)`);
-      renderNav();
-      navigate('explore');
-    }
-
     // --- STEP 1: DIRECT SIGNUP (NO CODE VERIFICATION) ---
     function handleDirectSignup(e) {
       e.preventDefault();
@@ -764,6 +623,7 @@
       const name = document.getElementById('auth-reg-name').value.trim();
       const email = document.getElementById('auth-reg-email').value.trim().toLowerCase();
       const school = document.getElementById('auth-reg-school').value.trim();
+      const rawGithub = document.getElementById('auth-reg-github') ? document.getElementById('auth-reg-github').value.trim() : '';
       const password = document.getElementById('auth-reg-password').value;
       const confirmPassword = document.getElementById('auth-reg-confirm-password').value;
 
@@ -793,11 +653,16 @@
         return;
       }
 
+      const githubId = rawGithub.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '');
+      const githubUrl = githubId ? `https://github.com/${githubId}` : '';
+
       const newUser = {
         id: "u_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
         name: name,
         email: email,
         school: school,
+        githubId: githubId,
+        githubUrl: githubUrl,
         password: password,
         headline: `Builder & Student at ${school}`,
         bio: "Collaborating and building innovative projects with the Pronnect community.",
@@ -986,12 +851,11 @@
 
               <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px;">
                 ${!currentUser ? `
-                  <button onclick="triggerGoogleSignIn()" class="btn" style="background:#ffffff; color:#1f2937; padding:12px 24px; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,0.4); display:flex; align-items:center; gap:10px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-                    <span>⚡ 1-Click Fast Google Login</span>
-                  </button>
-                  <button onclick="showAuthModal('signup')" class="btn btn-primary" style="padding:12px 26px;">
+                  <button onclick="showAuthModal('signup')" class="btn btn-primary" style="padding:12px 28px; font-weight:700;">
                     ✨ Create Account &rarr;
+                  </button>
+                  <button onclick="showAuthModal('login')" class="btn btn-secondary" style="padding:12px 24px; font-weight:600;">
+                    🔑 Log In
                   </button>
                 ` : `
                   <button onclick="navigate('explore')" class="btn btn-primary" style="padding:12px 28px;">
@@ -1065,21 +929,21 @@
 
                 <div>
                   <div class="accordion-header" onclick="toggleAccordionItem(2)">
-                    <span>🔒 2. Private Encrypted Workspaces & Leader Controls</span>
+                    <span>🛡️ 2. Private & Encrypted Workspaces</span>
                     <span id="accordion-icon-2" style="font-size:1.2rem; font-weight:bold;">+</span>
                   </div>
                   <div id="accordion-body-2" class="accordion-body">
-                    Lock stealth projects with custom passwords or require manual join approval from the project leader. Leaders maintain full control over member management.
+                    Protected private repositories with leader approval gates, member access management, and encrypted project state.
                   </div>
                 </div>
 
                 <div>
                   <div class="accordion-header" onclick="toggleAccordionItem(3)">
-                    <span>🌐 3. Global Mesh Sync Across Networks</span>
+                    <span>🌐 3. Real-Time Multi-Device Mesh Synchronization</span>
                     <span id="accordion-icon-3" style="font-size:1.2rem; font-weight:bold;">+</span>
                   </div>
                   <div id="accordion-body-3" class="accordion-body">
-                    Built on Gun.js WebSocket mesh relays and SSE channels. Collaborators see real-time chat, Kanban tasks, and polls without needing to be on the same local Wi-Fi.
+                    Built-in WebSocket mesh synchronization updates chats, task cards, and polls instantly across different devices and networks.
                   </div>
                 </div>
 
@@ -1097,12 +961,12 @@
               <!-- Visual Pillar Card -->
               <div class="bento-card" style="background:var(--c-charcoal-dark); display:flex; flex-direction:column; gap:16px;">
                 <div style="font-size:2.2rem;">🚀</div>
-                <h3 style="font-size:1.2rem; font-weight:700; color:var(--c-cream);">1-Click Fast Google Authentication</h3>
+                <h3 style="font-size:1.2rem; font-weight:700; color:var(--c-cream);">Real-Time Builder Workspaces</h3>
                 <p class="text-muted text-xs" style="line-height:1.6;">
-                  Skip manual forms and password recovery. Sign in instantly using your Google account to access all your projects and team chat rooms.
+                  Coordinate engineering sprints, live Kanban cards, shared resources, and team communication in high-performance collaborative rooms.
                 </p>
-                <button onclick="${currentUser ? "navigate('explore')" : "triggerGoogleSignIn()"}" class="btn btn-primary" style="margin-top:auto;">
-                  ${currentUser ? "Launch Workspace &rarr;" : "Try 1-Click Fast Login &rarr;"}
+                <button onclick="${currentUser ? "navigate('explore')" : "showAuthModal('signup')"}" class="btn btn-primary" style="margin-top:auto;">
+                  ${currentUser ? "Launch Workspace Hub &rarr;" : "Create Free Account &rarr;"}
                 </button>
               </div>
             </div>
@@ -1235,7 +1099,7 @@
               <div>© 2026 Pronnect Collaboration Hub. Built for builders with zero bloat.</div>
               <div style="display:flex; gap:14px;">
                 <a href="javascript:void(0)" onclick="showCommunityGuidelinesModal()" style="color:var(--c-sand); text-decoration:underline;">Guidelines</a>
-                <a href="javascript:void(0)" onclick="triggerGoogleSignIn()" style="color:var(--c-cream); font-weight:bold;">⚡ Fast Login</a>
+                <a href="javascript:void(0)" onclick="showAuthModal('login')" style="color:var(--c-cream); font-weight:bold;">🔑 Log In</a>
               </div>
             </div>
           </footer>
@@ -3286,12 +3150,24 @@
                   </div>
                 </div>
 
-                <!-- Verified Account Pill -->
+                <!-- GitHub Badge / ID Pill -->
                 <div style="margin-bottom:8px;">
-                  <div class="glass-pill" style="padding:6px 14px; display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--c-cream);">
-                    <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-                    <span>Google & Pronnect Verified</span>
-                  </div>
+                  ${user.githubId || user.githubUrl ? `
+                    <a href="${user.githubUrl || ('https://github.com/' + user.githubId)}" target="_blank" class="glass-pill" style="padding:6px 14px; display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--c-cream); text-decoration:none; border:1px solid rgba(221,213,205,0.3); transition:all 0.2s;" onmouseover="this.style.borderColor='var(--c-cream)'" onmouseout="this.style.borderColor='rgba(221,213,205,0.3)'">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                      <span>🐙 @${escapeHtml(user.githubId || (user.githubUrl ? user.githubUrl.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '') : ''))}</span>
+                    </a>
+                  ` : `
+                    ${isMe ? `
+                      <button onclick="switchProfileTab('edit')" class="glass-pill" style="padding:6px 14px; display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--c-sand); border:1px dashed rgba(221,213,205,0.4); cursor:pointer;">
+                        <span>+ Add GitHub ID</span>
+                      </button>
+                    ` : `
+                      <div class="glass-pill" style="padding:6px 14px; display:flex; align-items:center; gap:6px; font-size:0.75rem; color:var(--c-sand);">
+                        <span>Pronnect Builder</span>
+                      </div>
+                    `}
+                  `}
                 </div>
               </div>
 
@@ -3349,6 +3225,7 @@
         const skills = user.skills && user.skills.length > 0 ? user.skills : ['Full-Stack', 'UI/UX', 'AI/ML', 'Problem Solving'];
         const interests = user.interests && user.interests.length > 0 ? user.interests : ['Autonomous Robotics', 'Hackathons', 'Web3', 'AI Systems'];
         const bio = user.bio || 'Passionate about assembling high-performance teams, shipping hackathon projects, and building innovative software.';
+        const githubHandle = user.githubId || (user.githubUrl ? user.githubUrl.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '') : '');
 
         content.innerHTML = `
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
@@ -3377,13 +3254,49 @@
             </div>
 
             <div style="display:flex; flex-direction:column; gap:20px;">
+              
+              <!-- 🐙 DEDICATED GITHUB PROFILE CARD -->
+              <div class="glass-card" style="display:flex; flex-direction:column; gap:12px; border:1px solid rgba(221,213,205,0.3);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                    <h3 style="font-size:1.05rem; font-weight:700;">GitHub Developer Profile</h3>
+                  </div>
+                  ${githubHandle ? `<span class="badge badge-green">✓ Linked</span>` : `<span class="badge">Not Set</span>`}
+                </div>
+                
+                ${githubHandle ? `
+                  <div style="background:var(--c-charcoal-dark); border-radius:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(221,213,205,0.15);">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <img src="https://github.com/${encodeURIComponent(githubHandle)}.png" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(githubHandle)}'" style="width:36px; height:36px; border-radius:50%; border:1px solid var(--c-burgundy);" />
+                      <div>
+                        <div style="font-weight:700; color:var(--c-cream); font-size:0.9rem;">@${escapeHtml(githubHandle)}</div>
+                        <div class="text-muted text-xs">github.com/${escapeHtml(githubHandle)}</div>
+                      </div>
+                    </div>
+                    <a href="https://github.com/${encodeURIComponent(githubHandle)}" target="_blank" class="btn btn-secondary btn-sm" style="display:flex; align-items:center; gap:6px; font-weight:600;">
+                      <span>Open Profile</span> &rarr;
+                    </a>
+                  </div>
+                ` : `
+                  <div style="background:var(--c-charcoal-dark); border-radius:8px; padding:16px; text-align:center; border:1px dashed rgba(221,213,205,0.2);">
+                    <p class="text-muted text-xs">No GitHub ID linked to this profile yet.</p>
+                    ${currentUser && currentUser.id === user.id ? `
+                      <button onclick="switchProfileTab('edit')" class="btn btn-secondary btn-sm" style="margin-top:8px;">
+                        🐙 + Add GitHub ID in Settings
+                      </button>
+                    ` : ''}
+                  </div>
+                `}
+              </div>
+
               <!-- Connected Channels & Social Links -->
               <div class="glass-card" style="display:flex; flex-direction:column; gap:14px;">
                 <h3 style="font-size:1.1rem; font-weight:700;">Connected Channels</h3>
                 <div style="display:flex; flex-direction:column; gap:12px; font-size:0.85rem;">
                   <div style="display:flex; align-items:center; gap:8px; color:var(--c-sand);">
                     <span>🐙 GitHub:</span>
-                    <a href="${user.githubUrl || '#'}" target="_blank" style="color:var(--c-sand); text-decoration:underline;">${user.githubUrl ? escapeHtml(user.githubUrl.replace(/^https?:\/\//, '')) : 'Not set'}</a>
+                    <a href="${user.githubUrl || (user.githubId ? 'https://github.com/' + user.githubId : '#')}" target="_blank" style="color:var(--c-sand); text-decoration:underline;">${user.githubId || user.githubUrl ? escapeHtml(user.githubId || user.githubUrl.replace(/^https?:\/\//, '')) : 'Not set'}</a>
                   </div>
                   <div style="display:flex; align-items:center; gap:8px; color:var(--c-sand);">
                     <span>💼 LinkedIn:</span>
@@ -3535,14 +3448,17 @@
                 <input id="edit-interests" value="${escapeHtml((user.interests || []).join(', '))}" placeholder="Autonomous Vehicles, Hackathons, Web3, SpaceTech, Computer Vision" />
               </div>
 
-              <!-- 5. Connected Channels & Links -->
+              <!-- 5. 🐙 Dedicated GitHub ID & Connected Channels -->
               <div style="background:var(--c-charcoal-dark); border:1px solid rgba(221,213,205,0.2); border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:12px;">
                 <label class="text-xs font-bold text-muted" style="text-transform:uppercase;">Connected Channels & Profiles</label>
+                
+                <div style="background:rgba(125,64,71,0.15); border:1px solid rgba(125,64,71,0.4); border-radius:8px; padding:12px;">
+                  <label class="text-xs font-bold" style="display:block; margin-bottom:4px; color:var(--c-cream);">🐙 GitHub ID / Username</label>
+                  <input id="edit-github-id" value="${escapeHtml(user.githubId || (user.githubUrl ? user.githubUrl.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '') : ''))}" placeholder="e.g. Omkar-G-20 (or your GitHub handle)" style="background:var(--c-charcoal); border:1px solid rgba(221,213,205,0.3);" />
+                  <span class="text-muted text-xs" style="margin-top:4px; display:block;">Your GitHub link will automatically resolve to <code>https://github.com/your-username</code></span>
+                </div>
+
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                  <div>
-                    <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🐙 GitHub Profile URL</label>
-                    <input id="edit-github" value="${escapeHtml(user.githubUrl || '')}" placeholder="https://github.com/yourhandle" />
-                  </div>
                   <div>
                     <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">💼 LinkedIn URL</label>
                     <input id="edit-linkedin" value="${escapeHtml(user.linkedinUrl || '')}" placeholder="https://linkedin.com/in/yourhandle" />
@@ -3555,10 +3471,10 @@
                     <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🐦 Twitter / X Profile URL</label>
                     <input id="edit-twitter" value="${escapeHtml(user.twitterUrl || '')}" placeholder="https://x.com/yourhandle" />
                   </div>
-                </div>
-                <div>
-                  <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🌐 Personal Portfolio / Website URL</label>
-                  <input id="edit-portfolio" value="${escapeHtml(user.portfolioUrl || '')}" placeholder="https://yourportfolio.dev" />
+                  <div>
+                    <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">🌐 Personal Portfolio / Website URL</label>
+                    <input id="edit-portfolio" value="${escapeHtml(user.portfolioUrl || '')}" placeholder="https://yourportfolio.dev" />
+                  </div>
                 </div>
               </div>
 
@@ -3603,7 +3519,10 @@
       const skillsRaw = document.getElementById('edit-skills').value.trim();
       const interestsRaw = document.getElementById('edit-interests').value.trim();
 
-      const githubUrl = document.getElementById('edit-github').value.trim();
+      const rawGithub = document.getElementById('edit-github-id') ? document.getElementById('edit-github-id').value.trim() : '';
+      const githubId = rawGithub.replace(/^https?:\/\/github\.com\//, '').replace(/^@/, '');
+      const githubUrl = githubId ? `https://github.com/${githubId}` : '';
+
       const linkedinUrl = document.getElementById('edit-linkedin').value.trim();
       const discordTag = document.getElementById('edit-discord').value.trim();
       const twitterUrl = document.getElementById('edit-twitter').value.trim();
@@ -3620,6 +3539,7 @@
       currentUser.coverBg = coverBg || currentUser.coverBg;
       currentUser.skills = skills;
       currentUser.interests = interests;
+      currentUser.githubId = githubId;
       currentUser.githubUrl = githubUrl;
       currentUser.linkedinUrl = linkedinUrl;
       currentUser.discordTag = discordTag;
@@ -3631,13 +3551,13 @@
         Object.assign(u, {
           name, headline, school, bio, picture: currentUser.picture,
           coverBg: currentUser.coverBg, skills, interests,
-          githubUrl, linkedinUrl, discordTag, twitterUrl, portfolioUrl
+          githubId, githubUrl, linkedinUrl, discordTag, twitterUrl, portfolioUrl
         });
       }
 
       await saveState();
       renderNavAuth();
-      showToast('Profile, PFP, Cover & Channels saved live!');
+      showToast('Profile, GitHub ID & Channels saved live!');
       renderProfileView(currentUser.id);
     }
 
