@@ -751,6 +751,9 @@ const server = http.createServer(async (req, res) => {
   // Serve Clean Standalone HTML App
   res.writeHead(200, {
     "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
     "X-Content-Type-Options": "nosniff",
   });
   const indexPath = path.join(__dirname, "index.html");

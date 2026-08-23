@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pronnect — Discover Teams & Build Projects Together</title>
   <meta name="description" content="Pronnect is a modern platform to discover project teammates, manage Kanban tasks, chat in real-time, and ship collaborative projects.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   
   <!-- Gun.js Real-Time Decentralized Mesh Sync (Unlimited, Zero Daily Request Limits) -->
   <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
@@ -674,10 +677,11 @@
       store.users.push(newUser);
       currentUser = newUser;
       localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
+      store.presence[currentUser.id] = Date.now();
       saveState();
       closeModal();
       showToast(`🎉 Account created successfully! Welcome, ${currentUser.name}!`);
-      renderNav();
+      renderNavAuth();
       navigate('explore');
     }
 
@@ -696,26 +700,32 @@
 
       const user = store.users.find(u => 
         (u.email && u.email.toLowerCase() === input) || 
-        (u.name && u.name.toLowerCase() === input)
+        (u.name && u.name.toLowerCase() === input) ||
+        (u.githubId && u.githubId.toLowerCase() === input)
       );
 
       if (!user) {
-        showAuthError("No account found with this email or username. Please check your credentials or create an account!");
+        showAuthError("No account found with this email or username. Please switch to '1. Create Account' above to sign up in 5 seconds!");
         return;
       }
 
       if (user.password && user.password !== password) {
-        showAuthError("Incorrect password. Please try again!");
+        showAuthError("Incorrect password. Please verify and try again.");
         return;
       }
 
       currentUser = user;
       localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
+      store.presence[currentUser.id] = Date.now();
       saveState();
       closeModal();
       showToast(`✨ Welcome back, ${currentUser.name}!`);
-      renderNav();
+      renderNavAuth();
       navigate('explore');
+    }
+
+    function renderNav() {
+      renderNavAuth();
     }
 
     function logout() {
