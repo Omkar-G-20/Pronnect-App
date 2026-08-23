@@ -4,7 +4,10 @@
     "module": "CommonJS",
     "allowJs": true,
     "checkJs": false,
-    "noEmit": true
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": [],
+    "typeRoots": []
   },
   "include": [
     "standalone-server.js"
