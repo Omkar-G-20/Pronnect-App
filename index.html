@@ -109,10 +109,13 @@
     .progress-track { width: 100%; height: 10px; background: var(--c-charcoal-dark); border-radius: 9999px; overflow: hidden; border: 1px solid rgba(221, 213, 205, 0.2); }
     .progress-fill { height: 100%; background: linear-gradient(90deg, var(--c-burgundy), var(--c-sand)); transition: width 0.4s; }
     
-    /* Toast */
-    #toast-root { position: fixed; bottom: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-    .toast { padding: 12px 18px; border-radius: 8px; font-size: 0.875rem; background: var(--c-charcoal-dark); border: 1px solid var(--c-burgundy); color: var(--c-cream); box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: auto; }
-    .toast-err { border-color: var(--c-burgundy); background: #451b1f; }
+    /* Toast System - High Z-Index so it appears above all modals */
+    #toast-root { position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; max-width: 380px; }
+    .toast { padding: 14px 20px; border-radius: 10px; font-size: 0.875rem; font-weight: 500; background: #222020; border: 1px solid var(--c-sand); color: var(--c-cream); box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 10px rgba(125,64,71,0.3); pointer-events: auto; animation: toastIn 0.25s ease-out; }
+    .toast-err { border-color: #ef4444; background: #3b1418; color: #fecaca; }
+    @keyframes toastIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    
+    .auth-error-banner { display: none; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 10px 14px; border-radius: 8px; font-size: 0.825rem; line-height: 1.4; }
 
     /* Bento Grid Features */
     .bento-card { background: linear-gradient(180deg, rgba(56, 52, 52, 0.5) 0%, rgba(46, 46, 46, 0.7) 100%); border: 1px solid rgba(221, 213, 205, 0.25); border-radius: 16px; padding: 28px; }
@@ -505,33 +508,54 @@
       }
     }
 
-    // --- AUTHENTICATION MODAL: GOOGLE ONE-TAP, GITHUB, SSO & EMAIL AUTH ---
+    // --- AUTHENTICATION MODAL: GOOGLE ONE-TAP, GITHUB, SSO & DIRECT EMAIL AUTH ---
+    function showAuthError(msg) {
+      const banner = document.getElementById('auth-error-banner');
+      if (banner) {
+        banner.innerHTML = '⚠️ ' + escapeHtml(msg);
+        banner.style.display = 'block';
+      }
+      showToast(msg, true);
+    }
+
+    function clearAuthError() {
+      const banner = document.getElementById('auth-error-banner');
+      if (banner) banner.style.display = 'none';
+    }
+
     function showAuthModal(tab = 'login') {
       const isSignup = tab === 'signup';
       const registeredUsers = store.users || [];
-      const primaryUser = registeredUsers.find(u => u.email === 'omkargurav3217@gmail.com') || registeredUsers[0] || {
-        name: 'Omkar',
-        email: 'omkargurav3217@gmail.com',
-        picture: 'https://api.dicebear.com/7.x/bottts/svg?seed=Omkar%20Gurav'
-      };
+      const primaryUser = registeredUsers[0] || null;
 
       openModal(isSignup ? "Create your account" : "Log in to your account", `
         <div style="display:flex; flex-direction:column; gap:12px;">
           
-          <!-- 1. Google One-Tap Card -->
-          <div onclick="triggerGoogleSignIn('${primaryUser.email}', '${primaryUser.name}')" style="background:#e8f0fe; border:1px solid #d2e3fc; border-radius:8px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#dce8fc'" onmouseout="this.style.background='#e8f0fe'">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <img src="${primaryUser.picture || 'https://api.dicebear.com/7.x/bottts/svg?seed=Omkar'}" style="width:32px; height:32px; border-radius:50%; background:#7d4047; padding:2px; object-fit:cover;" />
-              <div style="text-align:left;">
-                <div style="font-weight:700; font-size:0.85rem; color:#1a73e8; display:flex; align-items:center; gap:4px;">
-                  <span>Continue as ${escapeHtml(primaryUser.name.split(' ')[0])}</span>
-                  <span style="font-size:10px;">▾</span>
+          <!-- In-Modal Prominent Error Banner -->
+          <div id="auth-error-banner" class="auth-error-banner"></div>
+
+          ${primaryUser ? `
+            <!-- 1. Google One-Tap Card -->
+            <div onclick="triggerGoogleSignIn('${primaryUser.email}', '${primaryUser.name}')" style="background:#e8f0fe; border:1px solid #d2e3fc; border-radius:8px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#dce8fc'" onmouseout="this.style.background='#e8f0fe'">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <img src="${primaryUser.picture || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent(primaryUser.name)}" style="width:32px; height:32px; border-radius:50%; background:#7d4047; padding:2px; object-fit:cover;" />
+                <div style="text-align:left;">
+                  <div style="font-weight:700; font-size:0.85rem; color:#1a73e8; display:flex; align-items:center; gap:4px;">
+                    <span>Continue as ${escapeHtml(primaryUser.name.split(' ')[0])}</span>
+                    <span style="font-size:10px;">▾</span>
+                  </div>
+                  <div style="font-size:0.75rem; color:#5f6368;">${escapeHtml(primaryUser.email)}</div>
                 </div>
-                <div style="font-size:0.75rem; color:#5f6368;">${escapeHtml(primaryUser.email)}</div>
               </div>
+              <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
             </div>
-            <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-          </div>
+          ` : `
+            <!-- Fast Google Login Card -->
+            <button type="button" onclick="triggerGoogleSignIn()" class="btn" style="background:#ffffff; color:#1f2937; border:1px solid #d2e3fc; width:100%; font-weight:600; padding:10px 14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+              <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+              <span>Continue with Google</span>
+            </button>
+          `}
 
           <!-- 2. Continue with GitHub Button -->
           <button type="button" onclick="triggerGithubSignIn()" class="btn" style="background:#24292e; color:#ffffff; border:1px solid rgba(221,213,205,0.2); width:100%; font-weight:600; padding:10px 14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:8px;">
@@ -553,22 +577,22 @@
 
           ${isSignup ? `
             <!-- CREATE ACCOUNT FORM -->
-            <form onsubmit="initiateSignupOTP(event)" style="display:flex; flex-direction:column; gap:12px;">
+            <form onsubmit="handleDirectSignup(event)" style="display:flex; flex-direction:column; gap:12px;">
               <div>
-                <input id="auth-reg-name" required placeholder="Full Name *" autofocus style="background:var(--c-charcoal-dark);" />
+                <input id="auth-reg-name" required placeholder="Full Name *" oninput="clearAuthError()" autofocus style="background:var(--c-charcoal-dark);" />
               </div>
               <div>
-                <input id="auth-reg-email" type="email" required placeholder="Email address *" style="background:var(--c-charcoal-dark);" />
+                <input id="auth-reg-email" type="email" required placeholder="Email address *" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
               </div>
               <div>
-                <input id="auth-reg-school" required placeholder="School / College *" style="background:var(--c-charcoal-dark);" />
+                <input id="auth-reg-school" required placeholder="School / College *" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
               </div>
               <div class="input-with-btn">
-                <input id="auth-reg-password" type="password" required placeholder="Password *" style="background:var(--c-charcoal-dark);" />
+                <input id="auth-reg-password" type="password" required placeholder="Password *" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
                 <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-password', this)">👁️</button>
               </div>
               <div class="input-with-btn">
-                <input id="auth-reg-confirm-password" type="password" required placeholder="Confirm Password *" style="background:var(--c-charcoal-dark);" />
+                <input id="auth-reg-confirm-password" type="password" required placeholder="Confirm Password *" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
                 <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-reg-confirm-password', this)">👁️</button>
               </div>
               <button type="submit" class="btn" style="background:#5b8def; color:white; font-weight:700; padding:12px; margin-top:4px; border-radius:8px;">
@@ -581,18 +605,18 @@
             </form>
           ` : `
             <!-- LOG IN FORM -->
-            <form onsubmit="initiateLoginOTP(event)" style="display:flex; flex-direction:column; gap:12px;">
+            <form onsubmit="handleDirectLogin(event)" style="display:flex; flex-direction:column; gap:12px;">
               <div>
-                <input id="auth-login-email" required placeholder="Email address or username" autofocus style="background:var(--c-charcoal-dark);" />
+                <input id="auth-login-email" required placeholder="Email address or username" oninput="clearAuthError()" autofocus style="background:var(--c-charcoal-dark);" />
               </div>
               <div>
                 <div class="input-with-btn">
-                  <input id="auth-login-password" type="password" required placeholder="Password" style="background:var(--c-charcoal-dark);" />
+                  <input id="auth-login-password" type="password" required placeholder="Password" oninput="clearAuthError()" style="background:var(--c-charcoal-dark);" />
                   <button type="button" class="input-toggle-btn" onclick="togglePasswordVisibility('auth-login-password', this)">👁️</button>
                 </div>
               </div>
               <div style="text-align:left; margin-top:-4px;">
-                <a href="javascript:void(0)" onclick="showToast('Password recovery OTP will be sent to your email.')" style="color:#5b8def; font-size:0.75rem; text-decoration:none;">Forgot your password?</a>
+                <a href="javascript:void(0)" onclick="showAuthError('Please enter your email and contact support or create a new profile.')" style="color:#5b8def; font-size:0.75rem; text-decoration:none;">Forgot your password?</a>
               </div>
               <button type="submit" class="btn" style="background:#5b8def; color:white; font-weight:700; padding:12px; margin-top:4px; border-radius:8px;">
                 Continue
@@ -630,7 +654,7 @@
             name: defaultName,
             email: accountEmail,
             school: "Google Verified Builder",
-            avatar: "https://lh3.googleusercontent.com/a/default-user=s96-c",
+            picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(defaultName)}`,
             skills: ["Full-Stack", "Google Cloud", "AI Research"],
             interests: ["Hackathons", "Open Source", "Autonomous Systems"],
             bio: "Google verified developer & collaborator on Pronnect.",
@@ -665,27 +689,10 @@
             </div>
             <div>
               <label class="text-xs text-muted" style="display:block; margin-bottom:4px;">Display Name (Optional)</label>
-              <input id="google-custom-name" placeholder="e.g. Alex Rivera" style="background:var(--c-charcoal-dark);" />
+              <input id="google-custom-name" placeholder="e.g. Omkar Gurav" style="background:var(--c-charcoal-dark);" />
             </div>
             <button type="submit" class="btn btn-primary" style="margin-top:4px; width:100%;">🚀 1-Click Fast Login &rarr;</button>
           </form>
-
-          <div style="display:flex; align-items:center; gap:8px;">
-            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
-            <span class="text-muted text-xs">OR CHOOSE DEMO BUILDER</span>
-            <div style="flex:1; height:1px; background:rgba(221,213,205,0.2);"></div>
-          </div>
-
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <button type="button" onclick="triggerGoogleSignIn('alex.rivera@gmail.com')" class="btn btn-secondary btn-sm" style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="display:flex; align-items:center; gap:8px;"><span>👨‍💻</span> <strong>Alex Rivera</strong> <span class="text-muted text-xs">(Full-Stack & ROS)</span></span>
-              <span>Select &rarr;</span>
-            </button>
-            <button type="button" onclick="triggerGoogleSignIn('sarah.chen@gmail.com')" class="btn btn-secondary btn-sm" style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="display:flex; align-items:center; gap:8px;"><span>👩‍🔬</span> <strong>Sarah Chen</strong> <span class="text-muted text-xs">(AI & Computer Vision)</span></span>
-              <span>Select &rarr;</span>
-            </button>
-          </div>
         </div>
       `);
     }
@@ -704,7 +711,7 @@
           name: name,
           email: email,
           school: "Google Verified Builder",
-          avatar: "https://lh3.googleusercontent.com/a/default-user=s96-c",
+          picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`,
           skills: ["Full-Stack", "AI Engineering", "Product Design"],
           interests: ["Hackathons", "Open Source", "Autonomous Systems"],
           bio: "Google verified developer & collaborator on Pronnect.",
@@ -721,22 +728,39 @@
       navigate('explore');
     }
 
-    // --- OTP EMAIL DISPATCH HELPER ---
-    async function dispatchOTPEmail(email, code, type, name) {
-      try {
-        await fetch('/api/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, code, type, name })
-        });
-      } catch (e) {
-        console.error('OTP email dispatch failed:', e);
+    function triggerGithubSignIn() {
+      const email = prompt("Enter your GitHub username or email:", "developer@github.com");
+      if (!email) return;
+      const username = email.split('@')[0];
+      let u = store.users.find(x => x.email.toLowerCase() === email.toLowerCase() || x.name.toLowerCase() === username.toLowerCase());
+      if (!u) {
+        u = {
+          id: "u_github_" + Date.now(),
+          name: username,
+          email: email.includes('@') ? email : `${username}@users.noreply.github.com`,
+          school: "GitHub Developer",
+          picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`,
+          skills: ["Git", "Full-Stack", "Open Source"],
+          interests: ["Hackathons", "Code Collab"],
+          bio: "GitHub verified collaborator on Pronnect.",
+          authProvider: "github"
+        };
+        store.users.push(u);
       }
+      currentUser = u;
+      localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
+      saveState();
+      closeModal();
+      showToast(`✨ Welcome, ${currentUser.name}! (Signed in via GitHub)`);
+      renderNav();
+      navigate('explore');
     }
 
-    // --- STEP 1: INITIATE SIGNUP OTP ---
-    async function initiateSignupOTP(e) {
+    // --- STEP 1: DIRECT SIGNUP (NO CODE VERIFICATION) ---
+    function handleDirectSignup(e) {
       e.preventDefault();
+      clearAuthError();
+
       const name = document.getElementById('auth-reg-name').value.trim();
       const email = document.getElementById('auth-reg-email').value.trim().toLowerCase();
       const school = document.getElementById('auth-reg-school').value.trim();
@@ -744,236 +768,88 @@
       const confirmPassword = document.getElementById('auth-reg-confirm-password').value;
 
       if (!name || !email || !school || !password) {
-        showToast("Please fill in all required fields", true);
+        showAuthError("Please fill in all required fields.");
         return;
       }
 
       if (!isValidEmail(email)) {
-        showToast("Please enter a valid email address (e.g. name@gmail.com)", true);
+        showAuthError("Invalid email address. Please enter a valid email (e.g. name@gmail.com).");
         return;
       }
 
       if (password.length < 4) {
-        showToast("Password must be at least 4 characters long", true);
+        showAuthError("Password must be at least 4 characters long.");
         return;
       }
 
       if (password !== confirmPassword) {
-        showToast("Passwords do not match. Please verify!", true);
+        showAuthError("Passwords do not match. Please verify!");
         return;
       }
 
-      // Generate 6-Digit Secure OTP
-      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      pendingAuth = {
-        type: 'signup',
-        data: { name, email, school, password },
-        otp: otpCode,
-        expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
+      const existing = store.users.find(u => u.email && u.email.toLowerCase() === email);
+      if (existing) {
+        showAuthError("An account with this email already exists. Please log in!");
+        return;
+      }
+
+      const newUser = {
+        id: "u_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+        name: name,
+        email: email,
+        school: school,
+        password: password,
+        headline: `Builder & Student at ${school}`,
+        bio: "Collaborating and building innovative projects with the Pronnect community.",
+        skills: ["Full-Stack", "AI/ML"],
+        picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`,
+        createdAt: new Date().toISOString()
       };
 
-      await dispatchOTPEmail(email, otpCode, 'signup', name);
-      showOtpVerificationModal();
-      showToast("Verification code sent to your email inbox. Please check your mail.");
+      store.users.push(newUser);
+      currentUser = newUser;
+      localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
+      saveState();
+      closeModal();
+      showToast(`🎉 Account created successfully! Welcome, ${currentUser.name}!`);
+      renderNav();
+      navigate('explore');
     }
 
-    // --- STEP 2: INITIATE LOGIN OTP ---
-    async function initiateLoginOTP(e) {
+    // --- STEP 2: DIRECT LOGIN (NO CODE VERIFICATION) ---
+    function handleDirectLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('auth-login-email').value.trim().toLowerCase();
+      clearAuthError();
+
+      const input = document.getElementById('auth-login-email').value.trim().toLowerCase();
       const password = document.getElementById('auth-login-password').value;
 
-      if (!email || !password) {
-        showToast("Please enter both email and password", true);
+      if (!input || !password) {
+        showAuthError("Please enter both email/username and password.");
         return;
       }
 
-      if (!isValidEmail(email)) {
-        showToast("Please enter a valid email address (e.g. name@gmail.com)", true);
+      const user = store.users.find(u => 
+        (u.email && u.email.toLowerCase() === input) || 
+        (u.name && u.name.toLowerCase() === input)
+      );
+
+      if (!user) {
+        showAuthError("No account found with this email or username. Please check your credentials or create an account!");
         return;
       }
 
-      const existing = store.users.find(u => (u.email && u.email.toLowerCase() === email) || (u.name && u.name.toLowerCase() === email));
-
-      if (existing) {
-        if (existing.password && existing.password !== password) {
-          showToast("Incorrect password. Please try again!", true);
-          return;
-        }
-      }
-
-      // Generate 6-Digit Secure OTP
-      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      pendingAuth = {
-        type: 'login',
-        data: {
-          name: existing ? existing.name : email.split('@')[0],
-          email: existing ? existing.email : email,
-          school: existing ? existing.school : "Member",
-          password: password,
-          existingUser: existing
-        },
-        otp: otpCode,
-        expiresAt: Date.now() + 5 * 60 * 1000
-      };
-
-      await dispatchOTPEmail(email, otpCode, 'login', pendingAuth.data.name);
-      showOtpVerificationModal();
-      showToast("Verification code sent to your email inbox. Please check your mail.");
-    }
-
-    // --- STEP 3: 6-DIGIT OTP VERIFICATION SCREEN ---
-    function showOtpVerificationModal() {
-      if (!pendingAuth) return;
-
-      const email = pendingAuth.data.email;
-
-      openModal("🛡️ Verify Your Email", `
-        <div style="display:flex; flex-direction:column; gap:16px; text-align:center;">
-          
-          <div style="width:52px; height:52px; border-radius:50%; background:rgba(125,64,71,0.25); border:1px solid var(--c-burgundy); margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">
-            📬
-          </div>
-
-          <div>
-            <div style="font-weight:700; font-size:1.15rem; color:var(--c-cream);">Enter Security Code</div>
-            <p class="text-muted text-xs" style="margin-top:6px; line-height:1.5;">
-              A 6-digit verification code has been sent to:
-              <br><strong style="color:var(--c-cream); font-size:0.95rem;">${escapeHtml(email)}</strong>
-            </p>
-          </div>
-
-          <form onsubmit="handleVerifyOTPSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
-            <div>
-              <label class="text-xs text-muted" style="display:block; margin-bottom:6px;">Enter 6-Digit Code</label>
-              <input id="modal-otp-input" required maxlength="6" pattern="[0-9]{6}" placeholder="••••••" autofocus style="text-align:center; font-size:1.5rem; font-weight:bold; letter-spacing:8px; font-family:monospace; padding:12px; background:var(--c-charcoal-dark);" />
-            </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--c-sand);">
-              <span id="otp-timer-label">Code expires in: 5:00</span>
-              <a href="javascript:void(0)" onclick="resendOTP()" style="color:var(--c-cream); font-weight:bold; text-decoration:underline;">Resend Code</a>
-            </div>
-
-            <div style="display:flex; gap:8px; margin-top:6px;">
-              <button type="button" onclick="showAuthModal(pendingAuth.type)" class="btn btn-secondary">&larr; Back</button>
-              <button type="submit" class="btn" style="flex:1; background:#5b8def; color:white; font-weight:700; border-radius:8px;">Verify & Enter &rarr;</button>
-            </div>
-          </form>
-        </div>
-      `);
-
-      startOTPTimer();
-    }
-
-    function startOTPTimer() {
-      if (otpResendTimer) clearInterval(otpResendTimer);
-      let secondsLeft = 300; // 5 minutes
-
-      otpResendTimer = setInterval(() => {
-        secondsLeft--;
-        const label = document.getElementById('otp-timer-label');
-        if (label) {
-          const mins = Math.floor(secondsLeft / 60);
-          const secs = secondsLeft % 60;
-          label.innerText = `Code expires in: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        }
-        if (secondsLeft <= 0) {
-          clearInterval(otpResendTimer);
-          if (pendingAuth) pendingAuth.otp = null;
-          if (label) label.innerText = "Code expired. Please click Resend!";
-        }
-      }, 1000);
-    }
-
-    async function resendOTP() {
-      if (!pendingAuth) return;
-      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      pendingAuth.otp = newOtp;
-      pendingAuth.expiresAt = Date.now() + 5 * 60 * 1000;
-      await dispatchOTPEmail(pendingAuth.data.email, newOtp, pendingAuth.type, pendingAuth.data.name);
-      showOtpVerificationModal();
-      showToast("A new verification code was sent to your email inbox.");
-    }
-
-    // --- STEP 4: VERIFY OTP AND FINALIZE LOGIN/REGISTRATION ---
-    function handleVerifyOTPSubmit(e) {
-      e.preventDefault();
-      if (!pendingAuth) return;
-
-      const enteredOTP = document.getElementById('modal-otp-input').value.trim();
-
-      if (Date.now() > pendingAuth.expiresAt) {
-        showToast("OTP code has expired. Please click Resend!", true);
+      if (user.password && user.password !== password) {
+        showAuthError("Incorrect password. Please try again!");
         return;
-      }
-
-      if (enteredOTP !== pendingAuth.otp) {
-        showToast("Invalid OTP code. Please check and re-enter!", true);
-        return;
-      }
-
-      // OTP Verified Successfully!
-      if (otpResendTimer) {
-        clearInterval(otpResendTimer);
-        otpResendTimer = null;
-      }
-
-      const { type, data } = pendingAuth;
-      let user = null;
-
-      if (type === 'signup') {
-        const existing = store.users.find(u => u.email.toLowerCase() === data.email.toLowerCase());
-        if (existing) {
-          existing.name = data.name;
-          existing.school = data.school;
-          existing.password = data.password;
-          user = existing;
-        } else {
-          user = {
-            id: "u_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
-            name: data.name,
-            email: data.email,
-            school: data.school,
-            password: data.password,
-            headline: `Builder & Student at ${data.school}`,
-            bio: "Collaborating and building innovative projects with the Pronnect community.",
-            skills: ["Full-Stack", "AI/ML"],
-            picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
-            createdAt: new Date().toISOString()
-          };
-          store.users.push(user);
-        }
-      } else {
-        // Login
-        if (data.existingUser) {
-          user = data.existingUser;
-          if (!user.password) user.password = data.password;
-        } else {
-          // New quick-register
-          user = {
-            id: "u_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
-            name: data.name,
-            email: data.email,
-            school: data.school || "Member",
-            password: data.password,
-            headline: "Collaborator & Builder",
-            bio: "Building innovative projects with the Pronnect community.",
-            skills: ["Full-Stack", "AI/ML"],
-            picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
-            createdAt: new Date().toISOString()
-          };
-          store.users.push(user);
-        }
       }
 
       currentUser = user;
-      store.presence[user.id] = Date.now();
-      pendingAuth = null;
-
+      localStorage.setItem("pronnect_user", JSON.stringify(currentUser));
       saveState();
       closeModal();
-      renderNavAuth();
-      showToast("Security verified! Welcome, " + user.name + "!");
+      showToast(`✨ Welcome back, ${currentUser.name}!`);
+      renderNav();
       navigate('explore');
     }
 
